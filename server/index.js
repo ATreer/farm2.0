@@ -1,3 +1,9 @@
+// 修复 Windows 控制台中文乱码
+if (process.platform === 'win32') {
+  process.stdout.setDefaultEncoding?.('utf8');
+  process.stderr.setDefaultEncoding?.('utf8');
+}
+
 const express = require('express');
 const cors = require('cors');
 const game = require('./gameLogic');

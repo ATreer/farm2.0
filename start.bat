@@ -88,7 +88,7 @@ call :kill_port 3001
 cd /d "%SCRIPT_DIR%server"
 del /f server.log 2>nul
 
-start "" /b cmd /c "node index.js > server.log 2>&1"
+start "" /b cmd /c "chcp 65001 >nul & node index.js > server.log 2>&1"
 
 :: 等待后端启动（最多 15 秒）
 set "SRV_OK=0"

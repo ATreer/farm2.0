@@ -276,11 +276,6 @@ function updateGrowth() {
     }
   });
   updated();
-
-  // 每日重置浇水状态（基于游戏时间）
-  const gameTime = getGameTime();
-  const lastReset = db.prepare("SELECT value FROM metadata WHERE key = 'last_water_reset'").get();
-  // 简化：每次调用时不重置，由游戏时间系统处理
 }
 
 // ==================== 背包 API ====================
