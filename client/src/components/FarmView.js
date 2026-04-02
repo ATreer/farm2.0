@@ -14,6 +14,30 @@ const MODES = {
 // 作物各阶段对应的 emoji 映射
 const STAGE_EMOJIS = assets.crop.stageDefault;
 
+// ==================== 斜视角农田配置 ====================
+// 背景图中荒地的位置（百分比，相对于背景图尺寸）
+const DIRT_AREA = {
+  // 荒地四角位置（百分比）
+  topLeft:     { x: 9.4,  y: 38.9 },
+  topRight:    { x: 89.6, y: 38.9 },
+  bottomLeft:  { x: 1.0,  y: 81.5 },
+  bottomRight: { x: 98.0, y: 81.5 },
+};
+
+// 斜视角参数
+const ISO_CONFIG = {
+  // 格子在斜视角中的宽度（近大远小，这里取中间值）
+  tileWidth: 72,
+  // 格子在斜视角中的高度（压缩，模拟透视）
+  tileHeight: 42,
+  // 行间距（越远的行间距越小）
+  rowGap: 6,
+  // 列间距
+  colGap: 4,
+  // 透视缩放（最远行 vs 最近行）
+  perspectiveScale: 0.65,
+};
+
 export default function FarmView({ playerId, player, notify, refresh, emitParticle, lang }) {
   const [plots, setPlots] = useState([]);
   const [cropsMap, setCropsMap] = useState({});
@@ -23,6 +47,8 @@ export default function FarmView({ playerId, player, notify, refresh, emitPartic
   const [inventory, setInventory] = useState([]);
   const [selectedPlot, setSelectedPlot] = useState(null);
   const [animatingPlots, setAnimatingPlots] = useState(new Set());
+  const farmRef = useRef(null);
+  const [bgSize, setBgSize] = useState({ width: 1200, height: 675 });
 
   const MODE_LABELS = {
     none: `${assets.mode.view} ${t('modeView', lang)}`,
@@ -41,7 +67,6 @@ export default function FarmView({ playerId, player, notify, refresh, emitPartic
       ]);
       setPlots(plotData);
       setInventory(invData);
-      // 建立作物ID到信息的映射
       const map = {};
       cropsData.forEach(c => { map[c.id] = c; });
       setCropsMap(map);
@@ -53,6 +78,19 @@ export default function FarmView({ playerId, player, notify, refresh, emitPartic
   useEffect(() => {
     loadData();
   }, [playerId, refresh]);
+
+  // 监听容器尺寸变化
+  useEffect(() => {
+    const updateSize = () => {
+      if (farmRef.current) {
+        const rect = farmRef.current.getBoundingClientRect();
+        setBgSize({ width: rect.width, height: rect.width * 0.5625 }); // 16:9
+      }
+    };
+    updateSize();
+    window.addEventListener('resize', updateSize);
+    return () => window.removeEventListener('resize', updateSize);
+  }, []);
 
   const seeds = inventory.filter(i => i.item_type === 'seed');
   const tools = inventory.filter(i => i.item_type === 'tool');
@@ -161,10 +199,59 @@ export default function FarmView({ playerId, player, notify, refresh, emitPartic
     { key: MODES.TOOL, label: `${assets.btn.tool} ${t('modeTool', lang)}`, color: '' },
   ];
 
+  // ==================== 斜视角位置计算 ====================
+  // 将 (row, col) 转换为背景图上的像素位置（百分比）
+  const getPlotPosition = (row, col) => {
+    const { topLeft, topRight, bottomLeft, bottomRight } = DIRT_AREA;
+    const totalRows = maxRow;
+    const totalCols = maxCol;
+
+    // 行进度 (0=最近/底部, 1=最远/顶部)
+    const rowT = totalRows > 1 ? row / (totalRows - 1) : 0.5;
+    // 列进度 (0=左, 1=右)
+    const colT = totalCols > 1 ? col / (totalCols - 1) : 0.5;
+
+    // 双线性插值计算该行列在梯形中的位置
+    const leftX = bottomLeft.x + (topLeft.x - bottomLeft.x) * rowT;
+    const rightX = bottomRight.x + (topRight.x - bottomRight.x) * rowT;
+    const leftY = bottomLeft.y + (topLeft.y - bottomLeft.y) * rowT;
+    const rightY = bottomRight.y + (topRight.y - bottomRight.y) * rowT;
+
+    const x = leftX + (rightX - leftX) * colT;
+    const y = leftY + (rightY - leftY) * colT;
+
+    return { x, y };
+  };
+
+  // 计算格子大小（透视缩放：近大远小）
+  const getPlotScale = (row) => {
+    const totalRows = maxRow;
+    const rowT = totalRows > 1 ? row / (totalRows - 1) : 0.5;
+    // rowT=0 是最近行（底部），rowT=1 是最远行（顶部）
+    return 1.0 - rowT * (1.0 - ISO_CONFIG.perspectiveScale);
+  };
+
+  // 将 plots 转为二维数组方便渲染
+  const plotGrid = [];
+  for (let r = 0; r < maxRow; r++) {
+    for (let c = 0; c < maxCol; c++) {
+      const plot = plots.find(p => p.row_idx === r && p.col_idx === c);
+      if (plot) {
+        plotGrid.push({ ...plot, row: r, col: c });
+      } else {
+        plotGrid.push({ id: `empty-${r}-${c}`, row_idx: r, col_idx: c, row: r, col: c, crop_id: null, is_watered: false, is_ready: false, growth_stage: 0 });
+      }
+    }
+  }
+
+  // 按行排序（先渲染远处的行，再渲染近处的行，实现遮挡效果）
+  const sortedPlots = [...plotGrid].sort((a, b) => a.row - b.row || a.col - b.col);
+
   return (
-    <div className="farm-container">
-      <div className="farm-grid-wrapper">
-        <div className="panel">
+    <div className="farm-container iso-farm-container">
+      <div className="farm-grid-wrapper iso-farm-wrapper">
+        {/* 工具栏面板 */}
+        <div className="panel iso-toolbar-panel">
           <div className="panel-title">{assets.panel.farm} {t('myFarm', lang)} ({maxRow}×{maxCol})</div>
 
           <div className="farm-actions">
@@ -226,29 +313,54 @@ export default function FarmView({ playerId, player, notify, refresh, emitPartic
               )}
             </div>
           )}
+        </div>
 
+        {/* 斜视角农田场景 */}
+        <div className="iso-scene" ref={farmRef}>
           <div
-            className="farm-grid"
-            style={{ gridTemplateColumns: `repeat(${maxCol}, 68px)` }}
+            className="iso-background"
+            style={{
+              backgroundImage: `url(/background.png)`,
+              width: bgSize.width,
+              height: bgSize.height,
+            }}
           >
-            {plots.map(plot => (
-              <div
-                key={plot.id}
-                className={`farm-plot ${plot.is_watered ? 'watered' : ''} ${plot.is_ready ? 'ready' : ''} ${animatingPlots.has(plot.id) ? 'plot-animating' : ''}`}
-                onClick={(e) => handlePlotClick(plot, e)}
-                title={`[${plot.row_idx}, ${plot.col_idx}] ${plot.crop_id || t('empty', lang)}`}
-              >
-                {plot.crop_id ? (
-                  <>
-                    <span className="plot-emoji">{getPlotDisplayEmoji(plot)}</span>
-                    {plot.is_watered && <span className="plot-water-indicator">{assets.plot.waterIndicator}</span>}
-                    {!plot.is_ready && <span className="plot-stage">{plot.growth_stage + 1}/4</span>}
-                  </>
-                ) : (
-                  <span style={{ fontSize: '16px', color: '#5a3010', opacity: 0.5 }}>{assets.crop.emptyPlot}</span>
-                )}
-              </div>
-            ))}
+            {/* 斜视角农田格子层 */}
+            <div className="iso-plots-layer">
+              {sortedPlots.map(plot => {
+                const pos = getPlotPosition(plot.row, plot.col);
+                const scale = getPlotScale(plot.row);
+                const tileW = ISO_CONFIG.tileWidth * scale;
+                const tileH = ISO_CONFIG.tileHeight * scale;
+
+                return (
+                  <div
+                    key={plot.id}
+                    className={`iso-plot ${plot.is_watered ? 'watered' : ''} ${plot.is_ready ? 'ready' : ''} ${animatingPlots.has(plot.id) ? 'plot-animating' : ''}`}
+                    style={{
+                      left: `${pos.x}%`,
+                      top: `${pos.y}%`,
+                      width: tileW,
+                      height: tileH,
+                      transform: `translate(-50%, -50%) scale(${scale})`,
+                      zIndex: plot.row * maxCol + plot.col + 1,
+                    }}
+                    onClick={(e) => handlePlotClick(plot, e)}
+                    title={`[${plot.row_idx}, ${plot.col_idx}] ${plot.crop_id || t('empty', lang)}`}
+                  >
+                    {plot.crop_id ? (
+                      <>
+                        <span className="iso-plot-emoji">{getPlotDisplayEmoji(plot)}</span>
+                        {plot.is_watered && <span className="iso-plot-water">{assets.plot.waterIndicator}</span>}
+                        {!plot.is_ready && <span className="iso-plot-stage">{plot.growth_stage + 1}/4</span>}
+                      </>
+                    ) : (
+                      <span className="iso-plot-empty">{assets.crop.emptyPlot}</span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </div>
       </div>
