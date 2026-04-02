@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import * as api from './services/api';
 import { createParticleOverlay } from './services/particles';
 import { t } from './services/i18n';
+import assets from './config/assets';
 import StartScreen from './components/StartScreen';
 import TopBar from './components/TopBar';
 import FarmView from './components/FarmView';
@@ -146,12 +147,12 @@ function App() {
   }
 
   const navItems = [
-    { key: PAGES.farm, icon: '🌾', label: t('navFarm', lang) },
-    { key: PAGES.inventory, icon: '🎒', label: t('navInventory', lang) },
-    { key: PAGES.shop, icon: '🏪', label: t('navShop', lang) },
-    { key: PAGES.upgrade, icon: '⬆️', label: t('navUpgrade', lang) },
-    { key: PAGES.character, icon: '👤', label: t('navCharacter', lang) },
-    { key: PAGES.settings, icon: '⚙️', label: t('navSettings', lang) },
+    { key: PAGES.farm, icon: assets.nav.farm, label: t('navFarm', lang) },
+    { key: PAGES.inventory, icon: assets.nav.inventory, label: t('navInventory', lang) },
+    { key: PAGES.shop, icon: assets.nav.shop, label: t('navShop', lang) },
+    { key: PAGES.upgrade, icon: assets.nav.upgrade, label: t('navUpgrade', lang) },
+    { key: PAGES.character, icon: assets.nav.character, label: t('navCharacter', lang) },
+    { key: PAGES.settings, icon: assets.nav.settings, label: t('navSettings', lang) },
   ];
 
   return (

@@ -7,6 +7,7 @@ if (process.platform === 'win32') {
 const express = require('express');
 const cors = require('cors');
 const game = require('./gameLogic');
+const config = require('./config/gameConfig');
 
 const app = express();
 app.use(cors());
@@ -233,9 +234,9 @@ setInterval(() => {
   } catch (e) {
     console.error('生长更新错误:', e.message);
   }
-}, 5000); // 每5秒更新一次生长
+}, config.server.growthUpdateInterval); // 生长更新间隔
 
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || config.server.port;
 app.listen(PORT, () => {
   console.log(`🌾 种田游戏服务器运行在 http://localhost:${PORT}`);
 });

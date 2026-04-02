@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import * as api from '../services/api';
 import { t } from '../services/i18n';
+import assets from '../config/assets';
 
 const MODES = {
   NONE: 'none',
@@ -11,9 +12,7 @@ const MODES = {
 };
 
 // 作物各阶段对应的 emoji 映射
-const STAGE_EMOJIS = {
-  0: '🌱', 1: '🌿', 2: '🪴', 3: '🌾',
-};
+const STAGE_EMOJIS = assets.crop.stageDefault;
 
 export default function FarmView({ playerId, player, notify, refresh, emitParticle, lang }) {
   const [plots, setPlots] = useState([]);
@@ -26,11 +25,11 @@ export default function FarmView({ playerId, player, notify, refresh, emitPartic
   const [animatingPlots, setAnimatingPlots] = useState(new Set());
 
   const MODE_LABELS = {
-    none: `👀 ${t('modeView', lang)}`,
-    plant: `🌱 ${t('modePlant', lang)}`,
-    water: `💧 ${t('modeWater', lang)}`,
-    harvest: `🌾 ${t('modeHarvest', lang)}`,
-    tool: `🧪 ${t('modeTool', lang)}`,
+    none: `${assets.mode.view} ${t('modeView', lang)}`,
+    plant: `${assets.mode.plant} ${t('modePlant', lang)}`,
+    water: `${assets.mode.water} ${t('modeWater', lang)}`,
+    harvest: `${assets.mode.harvest} ${t('modeHarvest', lang)}`,
+    tool: `${assets.mode.tool} ${t('modeTool', lang)}`,
   };
 
   const loadData = async () => {
@@ -76,7 +75,7 @@ export default function FarmView({ playerId, player, notify, refresh, emitPartic
       try {
         await api.plantCrop(playerId, plot.row_idx, plot.col_idx, selectedSeed);
         const cropName = cropsMap[selectedSeed]?.name || selectedSeed;
-        notify(`🌱 ${t('plantSuccess', lang, { name: cropName })}`, 'success');
+        notify(`${assets.notify.plant} ${t('plantSuccess', lang, { name: cropName })}`, 'success');
         emitParticle('plant', event);
         triggerPlotAnimation(plot.id);
         loadData();
@@ -86,7 +85,7 @@ export default function FarmView({ playerId, player, notify, refresh, emitPartic
     } else if (mode === MODES.WATER) {
       try {
         await api.waterPlot(playerId, plot.row_idx, plot.col_idx);
-        notify(`💧 ${t('waterSuccess', lang)}`, 'success');
+        notify(`${assets.notify.water} ${t('waterSuccess', lang)}`, 'success');
         emitParticle('water', event);
         triggerPlotAnimation(plot.id);
         loadData();
@@ -96,7 +95,7 @@ export default function FarmView({ playerId, player, notify, refresh, emitPartic
     } else if (mode === MODES.HARVEST) {
       try {
         const result = await api.harvestPlot(playerId, plot.row_idx, plot.col_idx);
-        notify(`🎉 ${t('harvestSuccess', lang, { name: result.harvested.name, gold: result.harvested.sell_price, exp: result.harvested.exp_reward })}`, 'success');
+        notify(`${assets.notify.harvest} ${t('harvestSuccess', lang, { name: result.harvested.name, gold: result.harvested.sell_price, exp: result.harvested.exp_reward })}`, 'success');
         emitParticle('harvest', event);
         loadData();
       } catch (e) {
@@ -105,7 +104,7 @@ export default function FarmView({ playerId, player, notify, refresh, emitPartic
     } else if (mode === MODES.TOOL && selectedTool) {
       try {
         const result = await api.useTool(playerId, selectedTool, plot.row_idx, plot.col_idx);
-        notify(`✨ ${t('toolSuccess', lang)}`, 'success');
+        notify(`${assets.notify.tool} ${t('toolSuccess', lang)}`, 'success');
         emitParticle('sparkle', event);
         setPlots(result.plots);
         setInventory(result.inventory);
@@ -123,7 +122,7 @@ export default function FarmView({ playerId, player, notify, refresh, emitPartic
     try {
       const result = await api.waterAllPlots(playerId);
       setPlots(result);
-      notify(`💧 ${t('waterAll', lang)}!`, 'success');
+      notify(`${assets.notify.water} ${t('waterAll', lang)}!`, 'success');
     } catch (e) {
       notify(e.message, 'error');
     }
@@ -133,7 +132,7 @@ export default function FarmView({ playerId, player, notify, refresh, emitPartic
     try {
       const result = await api.harvestAll(playerId);
       setPlots(result.plots);
-      notify(`🎉 ${t('harvestAllSuccess', lang, { count: result.harvested.length, gold: result.totalGold, exp: result.totalExp })}`, 'success');
+      notify(`${assets.notify.harvest} ${t('harvestAllSuccess', lang, { count: result.harvested.length, gold: result.totalGold, exp: result.totalExp })}`, 'success');
     } catch (e) {
       notify(e.message, 'error');
     }
@@ -142,12 +141,12 @@ export default function FarmView({ playerId, player, notify, refresh, emitPartic
   const getPlotDisplayEmoji = (plot) => {
     if (!plot.crop_id) return '';
     const crop = cropsMap[plot.crop_id];
-    if (plot.is_ready && crop) return crop.emoji_ready || '🌾';
+    if (plot.is_ready && crop) return crop.emoji_ready || assets.crop.readyDefault;
     if (crop) {
       const emojis = [crop.emoji_seed, crop.emoji_sprout, crop.emoji_growing, crop.emoji_ready];
-      return emojis[plot.growth_stage] || STAGE_EMOJIS[plot.growth_stage] || '🌱';
+      return emojis[plot.growth_stage] || STAGE_EMOJIS[plot.growth_stage] || assets.mode.plant;
     }
-    return STAGE_EMOJIS[plot.growth_stage] || '🌱';
+    return STAGE_EMOJIS[plot.growth_stage] || assets.mode.plant;
   };
 
   const maxRow = plots.length > 0 ? Math.max(...plots.map(p => p.row_idx)) + 1 : 3;
@@ -156,17 +155,17 @@ export default function FarmView({ playerId, player, notify, refresh, emitPartic
   const selectedCrop = selectedPlot?.crop_id ? cropsMap[selectedPlot.crop_id] : null;
 
   const modeButtons = [
-    { key: MODES.PLANT, label: `🌱 ${t('modePlant', lang)}`, color: 'btn-green' },
-    { key: MODES.WATER, label: `💧 ${t('modeWater', lang)}`, color: 'btn-blue' },
-    { key: MODES.HARVEST, label: `🌾 ${t('modeHarvest', lang)}`, color: 'btn-gold' },
-    { key: MODES.TOOL, label: `🧪 ${t('modeTool', lang)}`, color: '' },
+    { key: MODES.PLANT, label: `${assets.btn.plant} ${t('modePlant', lang)}`, color: 'btn-green' },
+    { key: MODES.WATER, label: `${assets.btn.water} ${t('modeWater', lang)}`, color: 'btn-blue' },
+    { key: MODES.HARVEST, label: `${assets.btn.harvest} ${t('modeHarvest', lang)}`, color: 'btn-gold' },
+    { key: MODES.TOOL, label: `${assets.btn.tool} ${t('modeTool', lang)}`, color: '' },
   ];
 
   return (
     <div className="farm-container">
       <div className="farm-grid-wrapper">
         <div className="panel">
-          <div className="panel-title">🌾 {t('myFarm', lang)} ({maxRow}×{maxCol})</div>
+          <div className="panel-title">{assets.panel.farm} {t('myFarm', lang)} ({maxRow}×{maxCol})</div>
 
           <div className="farm-actions">
             {modeButtons.map(btn => (
@@ -182,8 +181,8 @@ export default function FarmView({ playerId, player, notify, refresh, emitPartic
                 {btn.label}
               </button>
             ))}
-            <button className="btn btn-blue btn-small" onClick={handleWaterAll}>💧 {t('waterAll', lang)}</button>
-            <button className="btn btn-gold btn-small" onClick={handleHarvestAll}>🌾 {t('harvestAll', lang)}</button>
+            <button className="btn btn-blue btn-small" onClick={handleWaterAll}>{assets.btn.waterAll} {t('waterAll', lang)}</button>
+            <button className="btn btn-gold btn-small" onClick={handleHarvestAll}>{assets.btn.harvestAll} {t('harvestAll', lang)}</button>
 
             {mode !== MODES.NONE && (
               <span className="farm-mode-indicator">{MODE_LABELS[mode]}</span>
@@ -242,11 +241,11 @@ export default function FarmView({ playerId, player, notify, refresh, emitPartic
                 {plot.crop_id ? (
                   <>
                     <span className="plot-emoji">{getPlotDisplayEmoji(plot)}</span>
-                    {plot.is_watered && <span className="plot-water-indicator">💧</span>}
+                    {plot.is_watered && <span className="plot-water-indicator">{assets.plot.waterIndicator}</span>}
                     {!plot.is_ready && <span className="plot-stage">{plot.growth_stage + 1}/4</span>}
                   </>
                 ) : (
-                  <span style={{ fontSize: '16px', color: '#5a3010', opacity: 0.5 }}>+</span>
+                  <span style={{ fontSize: '16px', color: '#5a3010', opacity: 0.5 }}>{assets.crop.emptyPlot}</span>
                 )}
               </div>
             ))}
@@ -269,27 +268,27 @@ export default function FarmView({ playerId, player, notify, refresh, emitPartic
             </div>
             <div className="crop-info-stats">
               <div className="crop-stat">
-                <span className="crop-stat-label">⏱ {t('growTime', lang)}</span>
+                <span className="crop-stat-label">{assets.stat.growTime} {t('growTime', lang)}</span>
                 <span className="crop-stat-value">{selectedCrop.grow_time}{t('second', lang)}</span>
               </div>
               <div className="crop-stat">
-                <span className="crop-stat-label">📊 {t('growStage', lang)}</span>
+                <span className="crop-stat-label">{assets.stat.growStage} {t('growStage', lang)}</span>
                 <span className="crop-stat-value">{selectedPlot.growth_stage + 1}/{selectedCrop.stages}</span>
               </div>
               <div className="crop-stat">
-                <span className="crop-stat-label">💰 {t('sellPrice', lang)}</span>
+                <span className="crop-stat-label">{assets.stat.sellPrice} {t('sellPrice', lang)}</span>
                 <span className="crop-stat-value">{selectedCrop.sell_price}</span>
               </div>
               <div className="crop-stat">
-                <span className="crop-stat-label">⭐ {t('expReward', lang)}</span>
+                <span className="crop-stat-label">{assets.stat.expReward} {t('expReward', lang)}</span>
                 <span className="crop-stat-value">{selectedCrop.exp_reward}</span>
               </div>
               <div className="crop-stat">
-                <span className="crop-stat-label">💧 {t('waterStatus', lang)}</span>
+                <span className="crop-stat-label">{assets.stat.waterStatus} {t('waterStatus', lang)}</span>
                 <span className="crop-stat-value">{selectedPlot.is_watered ? t('wateredYes', lang) : t('wateredNo', lang)}</span>
               </div>
               <div className="crop-stat">
-                <span className="crop-stat-label">✅ {t('readyStatus', lang)}</span>
+                <span className="crop-stat-label">{assets.stat.readyStatus} {t('readyStatus', lang)}</span>
                 <span className="crop-stat-value">{selectedPlot.is_ready ? t('readyYes', lang) : t('readyNo', lang)}</span>
               </div>
             </div>
@@ -301,7 +300,7 @@ export default function FarmView({ playerId, player, notify, refresh, emitPartic
 
         {/* 农场概况 */}
         <div className="panel">
-          <div className="panel-title">📊 {t('farmOverview', lang)}</div>
+          <div className="panel-title">{assets.panel.overview} {t('farmOverview', lang)}</div>
           <div className="farm-stats">
             <div className="farm-stat-row">
               <span style={{ color: 'var(--text-dim)' }}>{t('totalPlots', lang)}</span>
@@ -313,11 +312,11 @@ export default function FarmView({ playerId, player, notify, refresh, emitPartic
             </div>
             <div className="farm-stat-row">
               <span style={{ color: 'var(--text-dim)' }}>{t('watered', lang)}</span>
-              <span>💧 {plots.filter(p => p.is_watered).length} {t('unit', lang)}</span>
+              <span>{assets.status.watered} {plots.filter(p => p.is_watered).length} {t('unit', lang)}</span>
             </div>
             <div className="farm-stat-row">
               <span style={{ color: 'var(--text-dim)' }}>{t('ready', lang)}</span>
-              <span style={{ color: 'var(--gold)', fontWeight: 'bold' }}>✅ {plots.filter(p => p.is_ready).length} {t('unit', lang)}</span>
+              <span style={{ color: 'var(--gold)', fontWeight: 'bold' }}>{assets.status.ready} {plots.filter(p => p.is_ready).length} {t('unit', lang)}</span>
             </div>
             <div className="farm-stat-row">
               <span style={{ color: 'var(--text-dim)' }}>{t('empty', lang)}</span>

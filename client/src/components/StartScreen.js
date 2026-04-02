@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { t } from '../services/i18n';
+import assets from '../config/assets';
 
 export default function StartScreen({ onStart, lang }) {
   const [name, setName] = useState('');
@@ -15,9 +16,9 @@ export default function StartScreen({ onStart, lang }) {
 
   return (
     <div className="start-screen">
-      <div className="start-title">🌾 {t('appTitle', lang)} 🌾</div>
+      <div className="start-title">{assets.title.wheat} {t('appTitle', lang)} {assets.title.wheat}</div>
       <div className="start-subtitle">{t('appSubtitle', lang)}</div>
-      <div className="start-character">🧑‍🌾</div>
+      <div className="start-character">{assets.avatars.default}</div>
       <input
         className="start-input"
         type="text"

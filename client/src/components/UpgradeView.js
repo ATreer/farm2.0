@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import * as api from '../services/api';
 import { t } from '../services/i18n';
+import assets from '../config/assets';
 
 export default function UpgradeView({ playerId, player, notify, refresh, emitParticle, lang }) {
   const [upgrades, setUpgrades] = useState([]);
@@ -21,7 +22,7 @@ export default function UpgradeView({ playerId, player, notify, refresh, emitPar
   const handleUpgrade = async (event) => {
     try {
       const result = await api.upgradeFarm(playerId);
-      notify(`🎉 ${t('upgradeSuccess', lang, { rows: result.player.max_farm_rows, cols: result.player.max_farm_cols })}`, 'success');
+      notify(`${assets.notify.upgrade} ${t('upgradeSuccess', lang, { rows: result.player.max_farm_rows, cols: result.player.max_farm_cols })}`, 'success');
       emitParticle('levelup', event);
       loadData();
     } catch (e) {
@@ -33,11 +34,11 @@ export default function UpgradeView({ playerId, player, notify, refresh, emitPar
 
   return (
     <div className="panel">
-      <div className="panel-title">⬆️ {t('farmUpgrade', lang)}</div>
+      <div className="panel-title">{assets.panel.upgrade} {t('farmUpgrade', lang)}</div>
 
       <div style={{ marginBottom: '18px', padding: '16px', background: 'var(--bg-card)', border: 'var(--pixel-border) var(--green)', borderRadius: 'var(--radius)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-          <span style={{ fontSize: '40px' }}>🌾</span>
+          <span style={{ fontSize: '40px' }}>{assets.upgrade.farm}</span>
           <div>
             <div style={{ fontFamily: 'var(--pixel-font)', fontSize: '14px', color: 'var(--text)' }}>
               {t('currentLevel', lang)} {player?.farm_level || 1} — {player?.max_farm_rows}×{player?.max_farm_cols} {t('unit', lang)}
@@ -51,14 +52,14 @@ export default function UpgradeView({ playerId, player, notify, refresh, emitPar
 
       {nextUpgrade ? (
         <div style={{ marginBottom: '18px', padding: '16px', background: 'var(--bg-card)', border: 'var(--pixel-border) var(--gold)', borderRadius: 'var(--radius)' }}>
-          <div style={{ fontSize: '13px', color: 'var(--gold)', marginBottom: '10px', fontWeight: 'bold' }}>⬆️ {t('nextUpgrade', lang)}</div>
+          <div style={{ fontSize: '13px', color: 'var(--gold)', marginBottom: '10px', fontWeight: 'bold' }}>{assets.upgrade.next} {t('nextUpgrade', lang)}</div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
             <div>
               <div style={{ fontSize: '14px', color: 'var(--text)' }}>
                 {t('level', lang)} {nextUpgrade.level} — {nextUpgrade.rows}×{nextUpgrade.cols} {t('unit', lang)}
               </div>
               <div style={{ fontSize: '13px', color: 'var(--text-dim)', marginTop: '4px' }}>
-                {t('need', lang)} 💰{nextUpgrade.cost}　|　{t('need', lang)} Lv.{nextUpgrade.required_player_level}
+                {t('need', lang)} {assets.upgrade.cost}{nextUpgrade.cost}　|　{t('need', lang)} Lv.{nextUpgrade.required_player_level}
               </div>
             </div>
             <button
@@ -66,26 +67,26 @@ export default function UpgradeView({ playerId, player, notify, refresh, emitPar
               onClick={(e) => handleUpgrade(e)}
               disabled={!nextUpgrade.affordable}
             >
-              💰 {t('upgrade', lang)} ({nextUpgrade.cost})
+              {assets.upgrade.cost} {t('upgrade', lang)} ({nextUpgrade.cost})
             </button>
           </div>
         </div>
       ) : (
         <div style={{ textAlign: 'center', padding: '20px', color: 'var(--gold)', fontSize: '14px' }}>
-          🎉 {t('maxLevel', lang)}
+          {assets.upgrade.maxLevel} {t('maxLevel', lang)}
         </div>
       )}
 
-      <div className="panel-title" style={{ marginTop: '18px' }}>📋 {t('upgradeRoute', lang)}</div>
+      <div className="panel-title" style={{ marginTop: '18px' }}>{assets.panel.upgradeRoute} {t('upgradeRoute', lang)}</div>
       <div className="upgrade-list">
         {upgrades.map(u => (
           <div key={u.level} className={`upgrade-item ${u.current ? 'current' : ''} ${u.locked ? 'locked' : ''}`}>
             <div className="upgrade-info">
               <span className="upgrade-level">
-                {u.current ? '✅' : u.locked ? '🔒' : '⬜'} {t('level', lang)} {u.level}
+                {u.current ? assets.status.current : u.locked ? assets.status.locked : assets.status.available} {t('level', lang)} {u.level}
               </span>
               <span className="upgrade-detail">
-                {u.rows}×{u.cols} {t('unit', lang)}　|　💰{u.cost}　|　Lv.{u.required_player_level}
+                {u.rows}×{u.cols} {t('unit', lang)}　|　{assets.upgrade.cost}{u.cost}　|　Lv.{u.required_player_level}
               </span>
             </div>
           </div>

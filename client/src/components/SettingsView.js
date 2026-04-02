@@ -1,5 +1,6 @@
 import React from 'react';
 import { t } from '../services/i18n';
+import assets from '../config/assets';
 
 export default function SettingsView({ lang, setLang, notify }) {
   const handleLangChange = (newLang) => {
@@ -18,13 +19,13 @@ export default function SettingsView({ lang, setLang, notify }) {
 
   return (
     <div className="panel">
-      <div className="panel-title">⚙️ {t('settings', lang)}</div>
+      <div className="panel-title">{assets.panel.settings} {t('settings', lang)}</div>
 
       <div className="settings-list">
         {/* 语言设置 */}
         <div className="settings-item">
           <div className="settings-info">
-            <div className="settings-label">🌐 {t('language', lang)}</div>
+            <div className="settings-label">{assets.settings.language} {t('language', lang)}</div>
             <div className="settings-desc">{t('languageDesc', lang)}</div>
           </div>
           <div className="settings-control">
@@ -46,7 +47,7 @@ export default function SettingsView({ lang, setLang, notify }) {
         {/* 重置数据 */}
         <div className="settings-item">
           <div className="settings-info">
-            <div className="settings-label">🗑️ {t('resetData', lang)}</div>
+            <div className="settings-label">{assets.settings.reset} {t('resetData', lang)}</div>
             <div className="settings-desc">{t('resetDataDesc', lang)}</div>
           </div>
           <div className="settings-control">
@@ -59,7 +60,7 @@ export default function SettingsView({ lang, setLang, notify }) {
         {/* 关于 */}
         <div className="settings-item">
           <div className="settings-info">
-            <div className="settings-label">ℹ️ {t('about', lang)}</div>
+            <div className="settings-label">{assets.settings.about} {t('about', lang)}</div>
             <div className="settings-desc">{t('aboutDesc', lang)}</div>
           </div>
         </div>

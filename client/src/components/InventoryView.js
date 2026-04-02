@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import * as api from '../services/api';
 import { t } from '../services/i18n';
+import assets from '../config/assets';
 
 export default function InventoryView({ playerId, notify, refresh, emitParticle, lang }) {
   const [items, setItems] = useState([]);
@@ -51,21 +52,21 @@ export default function InventoryView({ playerId, notify, refresh, emitParticle,
     : items.filter(i => i.item_type === filter);
 
   const typeLabels = {
-    seed: `🌱 ${t('typeSeed', lang)}`,
-    harvest: `🌾 ${t('typeHarvest', lang)}`,
-    tool: `🔧 ${t('typeTool', lang)}`,
+    seed: `${assets.type.seed} ${t('typeSeed', lang)}`,
+    harvest: `${assets.type.harvest} ${t('typeHarvest', lang)}`,
+    tool: `${assets.type.tool} ${t('typeTool', lang)}`,
   };
 
   const filters = [
-    { key: 'all', label: `📦 ${t('all', lang)}` },
-    { key: 'seed', label: `🌱 ${t('seeds', lang)}` },
-    { key: 'harvest', label: `🌾 ${t('harvest', lang)}` },
-    { key: 'tool', label: `🔧 ${t('tools', lang)}` },
+    { key: 'all', label: `${assets.filter.all} ${t('all', lang)}` },
+    { key: 'seed', label: `${assets.filter.seed} ${t('seeds', lang)}` },
+    { key: 'harvest', label: `${assets.filter.harvest} ${t('harvest', lang)}` },
+    { key: 'tool', label: `${assets.filter.tool} ${t('tools', lang)}` },
   ];
 
   return (
     <div className="panel">
-      <div className="panel-title">🎒 {t('inventory', lang)} ({items.length}{t('itemTypes', lang)})</div>
+      <div className="panel-title">{assets.panel.inventory} {t('inventory', lang)} ({items.length}{t('itemTypes', lang)})</div>
 
       <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', flexWrap: 'wrap' }}>
         {filters.map(f => (
@@ -88,7 +89,7 @@ export default function InventoryView({ playerId, notify, refresh, emitParticle,
           {filteredItems.map(item => (
             <div key={item.id} className="inventory-item">
               <span className="inv-type">{typeLabels[item.item_type] || item.item_type}</span>
-              <span className="inv-emoji">{item.emoji || '❓'}</span>
+              <span className="inv-emoji">{item.emoji || assets.status.unknown}</span>
               <div className="inv-name">{item.name || item.item_id}</div>
               <div className="inv-qty">×{item.quantity}</div>
               {item.item_type === 'harvest' && (

@@ -1,9 +1,10 @@
 const db = require('./database');
 const { v4: uuidv4 } = require('uuid');
+const config = require('./config/gameConfig');
 
 // ==================== 经验等级表 ====================
 function expForLevel(level) {
-  return Math.floor(50 * Math.pow(level, 1.5));
+  return Math.floor(config.exp.base * Math.pow(level, config.exp.exponent));
 }
 
 function getLevelInfo(exp) {
@@ -262,7 +263,7 @@ function updateGrowth() {
 
       // 浇水加速：每次浇水减少20%生长时间
       if (plot.is_watered) {
-        elapsed *= 1.25;
+        elapsed *= config.growth.waterSpeedMultiplier;
       }
 
       const timePerStage = plot.grow_time / plot.stages;
@@ -454,8 +455,8 @@ function advanceTime(minutes = 10) {
     newHour -= 24;
     newDay++;
   }
-  // 每30天换季
-  const seasonIdx = Math.floor((newDay - 1) / 30) % 4;
+  // 每 N 天换季
+  const seasonIdx = Math.floor((newDay - 1) / config.time.daysPerSeason) % 4;
   newSeason = SEASONS[seasonIdx];
 
   db.prepare(`
@@ -478,7 +479,7 @@ function sleepAdvance(playerId) {
   // 睡觉：时间前进到第二天早上6点
   const time = db.prepare('SELECT * FROM game_time WHERE id = 1').get();
   const hoursToAdvance = 24 - time.hour + 6;
-  advanceTime(hoursToAdvance * 6); // 6分钟 = 1小时
+  advanceTime(hoursToAdvance * config.time.sleepMinutesPerHour);
 
   return {
     time: getGameTime(),
@@ -502,9 +503,9 @@ function useTool(playerId, toolId, rowIdx, colIdx) {
     if (!plot || !plot.crop_id) throw new Error('请选择有作物的格子');
     if (plot.is_ready) throw new Error('作物已成熟');
 
-    // 肥料效果：将种植时间提前40%
+    // 肥料效果：将种植时间提前一定比例
     const plantedAt = new Date(plot.planted_at);
-    const newPlantedAt = new Date(plantedAt.getTime() - (plot.grow_time || 120) * 400);
+    const newPlantedAt = new Date(plantedAt.getTime() - (plot.grow_time || 120) * 1000 * config.tools.fertilizerTimeReduction);
     db.prepare('UPDATE farm_plots SET planted_at = ? WHERE id = ?').run(newPlantedAt.toISOString(), plot.id);
 
     // 消耗道具
@@ -525,7 +526,7 @@ function useTool(playerId, toolId, rowIdx, colIdx) {
     if (!plot || !plot.crop_id) throw new Error('请选择有作物的格子');
     if (plot.is_ready) throw new Error('作物已成熟');
 
-    db.prepare('UPDATE farm_plots SET is_ready = 1, growth_stage = 3 WHERE id = ?').run(plot.id);
+    db.prepare('UPDATE farm_plots SET is_ready = 1, growth_stage = ? WHERE id = ?').run(config.tools.speedGrowTargetStage, plot.id);
 
     if (inv.quantity === 1) {
       db.prepare('DELETE FROM inventory WHERE id = ?').run(inv.id);

@@ -1,10 +1,11 @@
 import React from 'react';
 import { t } from '../services/i18n';
+import assets from '../config/assets';
 
 export default function CharacterView({ player, lang }) {
   if (!player) return null;
 
-  const avatars = ['🧑‍🌾', '👩‍🌾', '👨‍🌾', '🧙', '🧝', '🦊'];
+  const avatars = assets.avatars.list;
   const avatarIndex = player.level % avatars.length;
   const titles = t('titles', lang);
   const title = titles[Math.min(player.level - 1, titles.length - 1)];
@@ -15,7 +16,7 @@ export default function CharacterView({ player, lang }) {
 
   return (
     <div className="panel">
-      <div className="panel-title">👤 {t('characterInfo', lang)}</div>
+      <div className="panel-title">{assets.panel.character} {t('characterInfo', lang)}</div>
 
       <div className="character-panel">
         <div className="char-avatar">
@@ -39,35 +40,35 @@ export default function CharacterView({ player, lang }) {
 
         <div className="char-stats">
           <div className="char-stat-row">
-            <span className="char-stat-label">👤 {t('name', lang)}</span>
+            <span className="char-stat-label">{assets.stat.name} {t('name', lang)}</span>
             <span className="char-stat-value">{player.name}</span>
           </div>
           <div className="char-stat-row">
-            <span className="char-stat-label">⭐ {t('level', lang)}</span>
+            <span className="char-stat-label">{assets.stat.level} {t('level', lang)}</span>
             <span className="char-stat-value">Lv.{player.level}</span>
           </div>
           <div className="char-stat-row">
-            <span className="char-stat-label">🏅 {t('title', lang)}</span>
+            <span className="char-stat-label">{assets.stat.title} {t('title', lang)}</span>
             <span className="char-stat-value">{title}</span>
           </div>
           <div className="char-stat-row">
-            <span className="char-stat-label">✨ {t('experience', lang)}</span>
+            <span className="char-stat-label">{assets.stat.exp} {t('experience', lang)}</span>
             <span className="char-stat-value">{player.currentExp}/{player.nextLevelExp}</span>
           </div>
           <div className="char-stat-row">
-            <span className="char-stat-label">💰 {t('gold', lang)}</span>
+            <span className="char-stat-label">{assets.stat.gold} {t('gold', lang)}</span>
             <span className="char-stat-value">{player.gold}</span>
           </div>
           <div className="char-stat-row">
-            <span className="char-stat-label">🌾 {t('farmLevel', lang)}</span>
+            <span className="char-stat-label">{assets.stat.farmLevel} {t('farmLevel', lang)}</span>
             <span className="char-stat-value">Lv.{player.farm_level}</span>
           </div>
           <div className="char-stat-row">
-            <span className="char-stat-label">📐 {t('farmSize', lang)}</span>
+            <span className="char-stat-label">{assets.stat.farmSize} {t('farmSize', lang)}</span>
             <span className="char-stat-value">{player.max_farm_rows}×{player.max_farm_cols}</span>
           </div>
           <div className="char-stat-row">
-            <span className="char-stat-label">📅 {t('createdAt', lang)}</span>
+            <span className="char-stat-label">{assets.stat.created} {t('createdAt', lang)}</span>
             <span className="char-stat-value" style={{ fontSize: '11px' }}>
               {player.created_at ? new Date(player.created_at).toLocaleDateString('zh-CN') : '-'}
             </span>
@@ -76,7 +77,7 @@ export default function CharacterView({ player, lang }) {
       </div>
 
       <div className="tips-panel">
-        <div className="tips-title">🎮 {t('gameTips', lang)}</div>
+        <div className="tips-title">{assets.panel.tips} {t('gameTips', lang)}</div>
         <div className="tip-item">
           {t('tips', lang).map((tip, i) => (
             <React.Fragment key={i}>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import * as api from '../services/api';
 import { t } from '../services/i18n';
+import assets from '../config/assets';
 
 export default function ShopView({ playerId, player, notify, refresh, emitParticle, lang }) {
   const [items, setItems] = useState([]);
@@ -36,14 +37,14 @@ export default function ShopView({ playerId, player, notify, refresh, emitPartic
     : items.filter(i => i.item_type === filter);
 
   const filters = [
-    { key: 'all', label: `📦 ${t('all', lang)}` },
-    { key: 'seed', label: `🌱 ${t('seeds', lang)}` },
-    { key: 'tool', label: `🔧 ${t('tools', lang)}` },
+    { key: 'all', label: `${assets.filter.all} ${t('all', lang)}` },
+    { key: 'seed', label: `${assets.filter.seed} ${t('seeds', lang)}` },
+    { key: 'tool', label: `${assets.filter.tool} ${t('tools', lang)}` },
   ];
 
   return (
     <div className="panel">
-      <div className="panel-title">🏪 {t('shop', lang)}　　💰 {t('currentGold', lang)}：{player?.gold || 0}</div>
+      <div className="panel-title">{assets.panel.shop} {t('shop', lang)}　　{assets.stat.gold} {t('currentGold', lang)}：{player?.gold || 0}</div>
 
       <div style={{ display: 'flex', gap: '8px', marginBottom: '14px', flexWrap: 'wrap', alignItems: 'center' }}>
         {filters.map(f => (
@@ -79,10 +80,10 @@ export default function ShopView({ playerId, player, notify, refresh, emitPartic
             </div>
 
             {item.locked ? (
-              <div className="shop-lock-info">🔒 {t('locked', lang, { level: item.unlock_level })}</div>
+              <div className="shop-lock-info">{assets.status.locked} {t('locked', lang, { level: item.unlock_level })}</div>
             ) : (
               <div className="shop-price">
-                <span className="shop-price-value">💰 {item.price * buyQty}</span>
+                <span className="shop-price-value">{assets.stat.gold} {item.price * buyQty}</span>
                 <button
                   className={`btn btn-small btn-green ${(player?.gold || 0) < item.price * buyQty ? 'btn-disabled' : ''}`}
                   onClick={(e) => handleBuy(item, e)}
