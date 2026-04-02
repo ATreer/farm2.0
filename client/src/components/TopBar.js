@@ -11,12 +11,12 @@ export default function TopBar({ player, time, onTimeAdvance, onSleep }) {
     <div className="top-bar">
       <div className="top-bar-left">
         <div className="player-info">
-          <span>🧑‍🌾</span>
+          <span className="player-avatar">🧑‍🌾</span>
           <span className="player-name">{player.name}</span>
           <span className="level-badge">Lv.{player.level}</span>
         </div>
         <div className="exp-bar-container">
-          <span>EXP</span>
+          <span>经验</span>
           <div className="exp-bar">
             <div className="exp-bar-fill" style={{ width: `${expPercent}%` }} />
           </div>
@@ -31,8 +31,8 @@ export default function TopBar({ player, time, onTimeAdvance, onSleep }) {
       <div className="time-display">
         {time && (
           <>
-            <span>{time.seasonEmoji} {time.seasonName}</span>
-            <span>📅 第{time.day}天</span>
+            <span className="season-icon">{time.seasonEmoji}</span>
+            <span>{time.seasonName} 第{time.day}天</span>
             <span>🕐 {time.timeStr}</span>
           </>
         )}

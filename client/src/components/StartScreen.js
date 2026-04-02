@@ -16,7 +16,7 @@ export default function StartScreen({ onStart }) {
     <div className="start-screen">
       <div className="start-title">🌾 像素农场 🌾</div>
       <div className="start-subtitle">种下希望，收获快乐</div>
-      <div style={{ fontSize: '48px', margin: '10px 0' }}>🧑‍🌾</div>
+      <div className="start-character">🧑‍🌾</div>
       <input
         className="start-input"
         type="text"
@@ -29,8 +29,8 @@ export default function StartScreen({ onStart }) {
       <button className="btn btn-primary start-btn" onClick={handleStart}>
         开始种田
       </button>
-      <div style={{ fontSize: '7px', color: '#555', marginTop: '20px' }}>
-        提示：种植 → 浇水 → 等待生长 → 收获 → 出售 → 升级
+      <div className="start-tips">
+        种植 → 浇水 → 等待生长 → 收获 → 出售 → 升级
       </div>
     </div>
   );

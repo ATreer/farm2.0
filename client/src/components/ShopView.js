@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import * as api from '../services/api';
 
-export default function ShopView({ playerId, player, notify, refresh }) {
+export default function ShopView({ playerId, player, notify, refresh, emitParticle }) {
   const [items, setItems] = useState([]);
   const [filter, setFilter] = useState('all');
   const [buyQty, setBuyQty] = useState(1);
@@ -19,11 +19,11 @@ export default function ShopView({ playerId, player, notify, refresh }) {
     loadData();
   }, [playerId, refresh]);
 
-  const handleBuy = async (item) => {
+  const handleBuy = async (item, event) => {
     try {
       const result = await api.buyItem(playerId, item.id, buyQty);
-      setItems(prev => prev.map(i => i.id === item.id ? i : i)); // trigger re-render
-      notify(`购买了 ${buyQty}x ${item.name}！`, 'success');
+      notify(`购买了 ${buyQty}× ${item.name}！`, 'success');
+      emitParticle('gold', event);
       loadData();
     } catch (e) {
       notify(e.message, 'error');
@@ -42,9 +42,9 @@ export default function ShopView({ playerId, player, notify, refresh }) {
 
   return (
     <div className="panel">
-      <div className="panel-title">🏪 商店 💰 {player?.gold || 0}</div>
+      <div className="panel-title">🏪 商店　　💰 当前金币：{player?.gold || 0}</div>
 
-      <div style={{ display: 'flex', gap: '5px', marginBottom: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
+      <div style={{ display: 'flex', gap: '8px', marginBottom: '14px', flexWrap: 'wrap', alignItems: 'center' }}>
         {filters.map(f => (
           <button
             key={f.key}
@@ -54,14 +54,14 @@ export default function ShopView({ playerId, player, notify, refresh }) {
             {f.label}
           </button>
         ))}
-        <span style={{ fontSize: '7px', color: '#8899aa', marginLeft: '10px' }}>购买数量：</span>
+        <span style={{ fontSize: '12px', color: 'var(--text-dim)', marginLeft: '12px' }}>购买数量：</span>
         {[1, 5, 10].map(q => (
           <button
             key={q}
             className={`btn btn-small ${buyQty === q ? 'btn-primary' : ''}`}
             onClick={() => setBuyQty(q)}
           >
-            x{q}
+            ×{q}
           </button>
         ))}
       </div>
@@ -84,10 +84,10 @@ export default function ShopView({ playerId, player, notify, refresh }) {
                 <span className="shop-price-value">💰 {item.price * buyQty}</span>
                 <button
                   className={`btn btn-small btn-green ${(player?.gold || 0) < item.price * buyQty ? 'btn-disabled' : ''}`}
-                  onClick={() => handleBuy(item)}
+                  onClick={(e) => handleBuy(item, e)}
                   disabled={(player?.gold || 0) < item.price * buyQty}
                 >
-                  购买 x{buyQty}
+                  购买 ×{buyQty}
                 </button>
               </div>
             )}

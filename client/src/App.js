@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import * as api from './services/api';
+import { createParticleOverlay } from './services/particles';
 import StartScreen from './components/StartScreen';
 import TopBar from './components/TopBar';
 import FarmView from './components/FarmView';
@@ -31,14 +32,38 @@ function App() {
   const [currentPage, setCurrentPage] = useState(PAGES.farm);
   const [notification, setNotification] = useState(null);
   const [refreshKey, setRefreshKey] = useState(0);
+  const phaserRef = useRef(null);
+
+  // 初始化 Phaser 粒子覆盖层
+  useEffect(() => {
+    if (playerId && !phaserRef.current) {
+      phaserRef.current = createParticleOverlay('root');
+    }
+    return () => {
+      if (phaserRef.current) {
+        phaserRef.current.destroy();
+        phaserRef.current = null;
+      }
+    };
+  }, [playerId]);
 
   const notify = useCallback((message, type = 'info') => {
-    setNotification({ message, type });
+    setNotification({ message, type, id: Date.now() });
     setTimeout(() => setNotification(null), 3000);
   }, []);
 
   const refresh = useCallback(() => {
     setRefreshKey(k => k + 1);
+  }, []);
+
+  // 获取粒子效果发射器
+  const emitParticle = useCallback((type, event) => {
+    if (phaserRef.current && event) {
+      const rect = event.currentTarget?.getBoundingClientRect();
+      if (rect) {
+        phaserRef.current.emitEffect(type, rect.left + rect.width / 2, rect.top + rect.height / 2);
+      }
+    }
   }, []);
 
   // 加载玩家数据
@@ -121,7 +146,7 @@ function App() {
   return (
     <div className="app-container">
       {notification && (
-        <div className={`notification ${notification.type}`}>
+        <div key={notification.id} className={`notification ${notification.type}`}>
           {notification.message}
         </div>
       )}
@@ -151,6 +176,7 @@ function App() {
           player={player}
           notify={notify}
           refresh={refresh}
+          emitParticle={emitParticle}
         />
       )}
       {currentPage === PAGES.inventory && (
@@ -158,6 +184,7 @@ function App() {
           playerId={playerId}
           notify={notify}
           refresh={refresh}
+          emitParticle={emitParticle}
         />
       )}
       {currentPage === PAGES.shop && (
@@ -166,6 +193,7 @@ function App() {
           player={player}
           notify={notify}
           refresh={refresh}
+          emitParticle={emitParticle}
         />
       )}
       {currentPage === PAGES.upgrade && (
@@ -174,6 +202,7 @@ function App() {
           player={player}
           notify={notify}
           refresh={refresh}
+          emitParticle={emitParticle}
         />
       )}
       {currentPage === PAGES.character && (
