@@ -5,3 +5,7 @@ node_modules/
 *.db-wal
 build/
 .env
+.dep_hash
+.build_hash
+.src_hash
+*.log
