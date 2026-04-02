@@ -13,11 +13,36 @@ cd /d "%SCRIPT_DIR%"
 echo.
 echo 📥 [0/4] 拉取最新代码...
 cd /d "%SCRIPT_DIR%"
+
+:: 检查是否有未提交的本地修改
+set STASHED=0
+for /f "usebackq delims=" %%l in ('git status --porcelain 2^>nul') do (
+    if not "%%l"=="" (
+        echo    📦 检测到本地修改，暂存中...
+        git stash push -m "auto-stash-before-pull" --quiet 2>nul
+        set STASHED=1
+        goto :do_pull
+    )
+)
+:do_pull
+
 git pull 2>&1
+set PULL_ERROR=1
 if errorlevel 1 (
     echo    ⚠️  git pull 失败，使用本地代码继续...
+    set PULL_ERROR=0
 ) else (
     echo    ✅ 代码已更新
+)
+
+:: 恢复暂存的修改
+if !STASHED! equ 1 (
+    echo    📦 恢复本地修改...
+    git stash pop --quiet 2>nul
+    if errorlevel 1 (
+        echo    ⚠️  恢复修改时存在冲突，请手动解决
+        git stash drop --quiet 2>nul
+    )
 )
 
 :: ==================== [1/4] 检查依赖 ====================

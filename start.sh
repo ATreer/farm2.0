@@ -9,11 +9,35 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 echo ""
 echo "📥 [0/4] 拉取最新代码..."
 cd "$SCRIPT_DIR"
-git pull 2>&1
-if [ $? -ne 0 ]; then
-  echo "   ⚠️  git pull 失败，使用本地代码继续..."
+
+# 检查是否有未提交的本地修改
+HAS_CHANGES=$(git status --porcelain 2>/dev/null | head -1)
+if [ -n "$HAS_CHANGES" ]; then
+  echo "   📦 检测到本地修改，暂存中..."
+  git stash push -m "auto-stash-before-pull" --quiet 2>&1
+  STASHED=1
+else
+  STASHED=0
 fi
-echo "   ✅ 代码已更新"
+
+git pull 2>&1
+PULL_RESULT=$?
+
+# 恢复暂存的修改
+if [ "$STASHED" = "1" ]; then
+  echo "   📦 恢复本地修改..."
+  git stash pop --quiet 2>&1
+  if [ $? -ne 0 ]; then
+    echo "   ⚠️  恢复修改时存在冲突，请手动解决"
+    git stash drop --quiet 2>/dev/null
+  fi
+fi
+
+if [ $PULL_RESULT -ne 0 ]; then
+  echo "   ⚠️  git pull 失败，使用本地代码继续..."
+else
+  echo "   ✅ 代码已更新"
+fi
 
 # ==================== 函数 ====================
 
