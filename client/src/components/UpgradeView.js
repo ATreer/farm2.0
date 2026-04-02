@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import * as api from '../services/api';
+import { t } from '../services/i18n';
 
-export default function UpgradeView({ playerId, player, notify, refresh, emitParticle }) {
+export default function UpgradeView({ playerId, player, notify, refresh, emitParticle, lang }) {
   const [upgrades, setUpgrades] = useState([]);
 
   const loadData = async () => {
@@ -20,7 +21,7 @@ export default function UpgradeView({ playerId, player, notify, refresh, emitPar
   const handleUpgrade = async (event) => {
     try {
       const result = await api.upgradeFarm(playerId);
-      notify(`🎉 农田升级成功！现在 ${result.player.max_farm_rows}×${result.player.max_farm_cols}`, 'success');
+      notify(`🎉 ${t('upgradeSuccess', lang, { rows: result.player.max_farm_rows, cols: result.player.max_farm_cols })}`, 'success');
       emitParticle('levelup', event);
       loadData();
     } catch (e) {
@@ -32,17 +33,17 @@ export default function UpgradeView({ playerId, player, notify, refresh, emitPar
 
   return (
     <div className="panel">
-      <div className="panel-title">⬆️ 农田升级</div>
+      <div className="panel-title">⬆️ {t('farmUpgrade', lang)}</div>
 
       <div style={{ marginBottom: '18px', padding: '16px', background: 'var(--bg-card)', border: 'var(--pixel-border) var(--green)', borderRadius: 'var(--radius)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
           <span style={{ fontSize: '40px' }}>🌾</span>
           <div>
             <div style={{ fontFamily: 'var(--pixel-font)', fontSize: '14px', color: 'var(--text)' }}>
-              等级 {player?.farm_level || 1} — {player?.max_farm_rows}×{player?.max_farm_cols} 格
+              {t('currentLevel', lang)} {player?.farm_level || 1} — {player?.max_farm_rows}×{player?.max_farm_cols} {t('unit', lang)}
             </div>
             <div style={{ fontSize: '13px', color: 'var(--text-dim)', marginTop: '4px' }}>
-              共 {(player?.max_farm_rows || 3) * (player?.max_farm_cols || 3)} 块农田
+              {(player?.max_farm_rows || 3) * (player?.max_farm_cols || 3)} {t('totalPlotsLabel', lang)}
             </div>
           </div>
         </div>
@@ -50,14 +51,14 @@ export default function UpgradeView({ playerId, player, notify, refresh, emitPar
 
       {nextUpgrade ? (
         <div style={{ marginBottom: '18px', padding: '16px', background: 'var(--bg-card)', border: 'var(--pixel-border) var(--gold)', borderRadius: 'var(--radius)' }}>
-          <div style={{ fontSize: '13px', color: 'var(--gold)', marginBottom: '10px', fontWeight: 'bold' }}>⬆️ 下一级升级</div>
+          <div style={{ fontSize: '13px', color: 'var(--gold)', marginBottom: '10px', fontWeight: 'bold' }}>⬆️ {t('nextUpgrade', lang)}</div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
             <div>
               <div style={{ fontSize: '14px', color: 'var(--text)' }}>
-                等级 {nextUpgrade.level} — {nextUpgrade.rows}×{nextUpgrade.cols} 格
+                {t('level', lang)} {nextUpgrade.level} — {nextUpgrade.rows}×{nextUpgrade.cols} {t('unit', lang)}
               </div>
               <div style={{ fontSize: '13px', color: 'var(--text-dim)', marginTop: '4px' }}>
-                需要 💰{nextUpgrade.cost}　|　需要 Lv.{nextUpgrade.required_player_level}
+                {t('need', lang)} 💰{nextUpgrade.cost}　|　{t('need', lang)} Lv.{nextUpgrade.required_player_level}
               </div>
             </div>
             <button
@@ -65,26 +66,26 @@ export default function UpgradeView({ playerId, player, notify, refresh, emitPar
               onClick={(e) => handleUpgrade(e)}
               disabled={!nextUpgrade.affordable}
             >
-              💰 升级 ({nextUpgrade.cost})
+              💰 {t('upgrade', lang)} ({nextUpgrade.cost})
             </button>
           </div>
         </div>
       ) : (
         <div style={{ textAlign: 'center', padding: '20px', color: 'var(--gold)', fontSize: '14px' }}>
-          🎉 农田已达最高等级！
+          🎉 {t('maxLevel', lang)}
         </div>
       )}
 
-      <div className="panel-title" style={{ marginTop: '18px' }}>📋 升级路线</div>
+      <div className="panel-title" style={{ marginTop: '18px' }}>📋 {t('upgradeRoute', lang)}</div>
       <div className="upgrade-list">
         {upgrades.map(u => (
           <div key={u.level} className={`upgrade-item ${u.current ? 'current' : ''} ${u.locked ? 'locked' : ''}`}>
             <div className="upgrade-info">
               <span className="upgrade-level">
-                {u.current ? '✅' : u.locked ? '🔒' : '⬜'} 等级 {u.level}
+                {u.current ? '✅' : u.locked ? '🔒' : '⬜'} {t('level', lang)} {u.level}
               </span>
               <span className="upgrade-detail">
-                {u.rows}×{u.cols} 格　|　💰{u.cost}　|　Lv.{u.required_player_level}
+                {u.rows}×{u.cols} {t('unit', lang)}　|　💰{u.cost}　|　Lv.{u.required_player_level}
               </span>
             </div>
           </div>

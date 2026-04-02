@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import * as api from '../services/api';
+import { t } from '../services/i18n';
 
 const MODES = {
   NONE: 'none',
@@ -9,20 +10,12 @@ const MODES = {
   TOOL: 'tool',
 };
 
-const MODE_LABELS = {
-  none: '👀 查看模式',
-  plant: '🌱 种植模式',
-  water: '💧 浇水模式',
-  harvest: '🌾 收获模式',
-  tool: '🧪 道具模式',
-};
-
 // 作物各阶段对应的 emoji 映射
 const STAGE_EMOJIS = {
   0: '🌱', 1: '🌿', 2: '🪴', 3: '🌾',
 };
 
-export default function FarmView({ playerId, player, notify, refresh, emitParticle }) {
+export default function FarmView({ playerId, player, notify, refresh, emitParticle, lang }) {
   const [plots, setPlots] = useState([]);
   const [cropsMap, setCropsMap] = useState({});
   const [mode, setMode] = useState(MODES.NONE);
@@ -31,6 +24,14 @@ export default function FarmView({ playerId, player, notify, refresh, emitPartic
   const [inventory, setInventory] = useState([]);
   const [selectedPlot, setSelectedPlot] = useState(null);
   const [animatingPlots, setAnimatingPlots] = useState(new Set());
+
+  const MODE_LABELS = {
+    none: `👀 ${t('modeView', lang)}`,
+    plant: `🌱 ${t('modePlant', lang)}`,
+    water: `💧 ${t('modeWater', lang)}`,
+    harvest: `🌾 ${t('modeHarvest', lang)}`,
+    tool: `🧪 ${t('modeTool', lang)}`,
+  };
 
   const loadData = async () => {
     try {
@@ -75,7 +76,7 @@ export default function FarmView({ playerId, player, notify, refresh, emitPartic
       try {
         await api.plantCrop(playerId, plot.row_idx, plot.col_idx, selectedSeed);
         const cropName = cropsMap[selectedSeed]?.name || selectedSeed;
-        notify(`🌱 种下了${cropName}`, 'success');
+        notify(`🌱 ${t('plantSuccess', lang, { name: cropName })}`, 'success');
         emitParticle('plant', event);
         triggerPlotAnimation(plot.id);
         loadData();
@@ -85,7 +86,7 @@ export default function FarmView({ playerId, player, notify, refresh, emitPartic
     } else if (mode === MODES.WATER) {
       try {
         await api.waterPlot(playerId, plot.row_idx, plot.col_idx);
-        notify('💧 浇水成功！生长速度提升', 'success');
+        notify(`💧 ${t('waterSuccess', lang)}`, 'success');
         emitParticle('water', event);
         triggerPlotAnimation(plot.id);
         loadData();
@@ -95,7 +96,7 @@ export default function FarmView({ playerId, player, notify, refresh, emitPartic
     } else if (mode === MODES.HARVEST) {
       try {
         const result = await api.harvestPlot(playerId, plot.row_idx, plot.col_idx);
-        notify(`🎉 收获了${result.harvested.name}！+${result.harvested.sell_price}💰 +${result.harvested.exp_reward}EXP`, 'success');
+        notify(`🎉 ${t('harvestSuccess', lang, { name: result.harvested.name, gold: result.harvested.sell_price, exp: result.harvested.exp_reward })}`, 'success');
         emitParticle('harvest', event);
         loadData();
       } catch (e) {
@@ -104,7 +105,7 @@ export default function FarmView({ playerId, player, notify, refresh, emitPartic
     } else if (mode === MODES.TOOL && selectedTool) {
       try {
         const result = await api.useTool(playerId, selectedTool, plot.row_idx, plot.col_idx);
-        notify('✨ 使用道具成功！', 'success');
+        notify(`✨ ${t('toolSuccess', lang)}`, 'success');
         emitParticle('sparkle', event);
         setPlots(result.plots);
         setInventory(result.inventory);
@@ -122,7 +123,7 @@ export default function FarmView({ playerId, player, notify, refresh, emitPartic
     try {
       const result = await api.waterAllPlots(playerId);
       setPlots(result);
-      notify('💧 全部浇水完成！', 'success');
+      notify(`💧 ${t('waterAll', lang)}!`, 'success');
     } catch (e) {
       notify(e.message, 'error');
     }
@@ -132,7 +133,7 @@ export default function FarmView({ playerId, player, notify, refresh, emitPartic
     try {
       const result = await api.harvestAll(playerId);
       setPlots(result.plots);
-      notify(`🎉 收获了 ${result.harvested.length} 个作物！+${result.totalGold}💰 +${result.totalExp}EXP`, 'success');
+      notify(`🎉 ${t('harvestAllSuccess', lang, { count: result.harvested.length, gold: result.totalGold, exp: result.totalExp })}`, 'success');
     } catch (e) {
       notify(e.message, 'error');
     }
@@ -155,17 +156,17 @@ export default function FarmView({ playerId, player, notify, refresh, emitPartic
   const selectedCrop = selectedPlot?.crop_id ? cropsMap[selectedPlot.crop_id] : null;
 
   const modeButtons = [
-    { key: MODES.PLANT, label: '🌱 种植', color: 'btn-green' },
-    { key: MODES.WATER, label: '💧 浇水', color: 'btn-blue' },
-    { key: MODES.HARVEST, label: '🌾 收获', color: 'btn-gold' },
-    { key: MODES.TOOL, label: '🧪 道具', color: '' },
+    { key: MODES.PLANT, label: `🌱 ${t('modePlant', lang)}`, color: 'btn-green' },
+    { key: MODES.WATER, label: `💧 ${t('modeWater', lang)}`, color: 'btn-blue' },
+    { key: MODES.HARVEST, label: `🌾 ${t('modeHarvest', lang)}`, color: 'btn-gold' },
+    { key: MODES.TOOL, label: `🧪 ${t('modeTool', lang)}`, color: '' },
   ];
 
   return (
     <div className="farm-container">
       <div className="farm-grid-wrapper">
         <div className="panel">
-          <div className="panel-title">🌾 我的农田 ({maxRow}×{maxCol})</div>
+          <div className="panel-title">🌾 {t('myFarm', lang)} ({maxRow}×{maxCol})</div>
 
           <div className="farm-actions">
             {modeButtons.map(btn => (
@@ -181,8 +182,8 @@ export default function FarmView({ playerId, player, notify, refresh, emitPartic
                 {btn.label}
               </button>
             ))}
-            <button className="btn btn-blue btn-small" onClick={handleWaterAll}>💧 全部浇水</button>
-            <button className="btn btn-gold btn-small" onClick={handleHarvestAll}>🌾 全部收获</button>
+            <button className="btn btn-blue btn-small" onClick={handleWaterAll}>💧 {t('waterAll', lang)}</button>
+            <button className="btn btn-gold btn-small" onClick={handleHarvestAll}>🌾 {t('harvestAll', lang)}</button>
 
             {mode !== MODES.NONE && (
               <span className="farm-mode-indicator">{MODE_LABELS[mode]}</span>
@@ -191,9 +192,9 @@ export default function FarmView({ playerId, player, notify, refresh, emitPartic
 
           {mode === MODES.PLANT && (
             <div className="selection-bar">
-              <span className="selection-bar-label">选择种子：</span>
+              <span className="selection-bar-label">{t('selectSeed', lang)}</span>
               {seeds.length === 0 ? (
-                <span className="selection-bar-empty">背包中没有种子，去商店购买吧！</span>
+                <span className="selection-bar-empty">{t('noSeeds', lang)}</span>
               ) : (
                 seeds.map(seed => (
                   <button
@@ -210,9 +211,9 @@ export default function FarmView({ playerId, player, notify, refresh, emitPartic
 
           {mode === MODES.TOOL && (
             <div className="selection-bar">
-              <span className="selection-bar-label">选择道具：</span>
+              <span className="selection-bar-label">{t('selectTool', lang)}</span>
               {tools.length === 0 ? (
-                <span className="selection-bar-empty">背包中没有道具</span>
+                <span className="selection-bar-empty">{t('noTools', lang)}</span>
               ) : (
                 tools.map(tool => (
                   <button
@@ -236,7 +237,7 @@ export default function FarmView({ playerId, player, notify, refresh, emitPartic
                 key={plot.id}
                 className={`farm-plot ${plot.is_watered ? 'watered' : ''} ${plot.is_ready ? 'ready' : ''} ${animatingPlots.has(plot.id) ? 'plot-animating' : ''}`}
                 onClick={(e) => handlePlotClick(plot, e)}
-                title={`[${plot.row_idx}, ${plot.col_idx}] ${plot.crop_id || '空地'}`}
+                title={`[${plot.row_idx}, ${plot.col_idx}] ${plot.crop_id || t('empty', lang)}`}
               >
                 {plot.crop_id ? (
                   <>
@@ -262,34 +263,34 @@ export default function FarmView({ playerId, player, notify, refresh, emitPartic
               <div>
                 <div className="crop-info-name">{selectedCrop.name}</div>
                 <div style={{ fontSize: '12px', color: 'var(--text-dim)' }}>
-                  位置 [{selectedPlot.row_idx}, {selectedPlot.col_idx}]
+                  {t('position', lang)} [{selectedPlot.row_idx}, {selectedPlot.col_idx}]
                 </div>
               </div>
             </div>
             <div className="crop-info-stats">
               <div className="crop-stat">
-                <span className="crop-stat-label">⏱ 生长时间</span>
-                <span className="crop-stat-value">{selectedCrop.grow_time}秒</span>
+                <span className="crop-stat-label">⏱ {t('growTime', lang)}</span>
+                <span className="crop-stat-value">{selectedCrop.grow_time}{t('second', lang)}</span>
               </div>
               <div className="crop-stat">
-                <span className="crop-stat-label">📊 生长阶段</span>
+                <span className="crop-stat-label">📊 {t('growStage', lang)}</span>
                 <span className="crop-stat-value">{selectedPlot.growth_stage + 1}/{selectedCrop.stages}</span>
               </div>
               <div className="crop-stat">
-                <span className="crop-stat-label">💰 出售价格</span>
+                <span className="crop-stat-label">💰 {t('sellPrice', lang)}</span>
                 <span className="crop-stat-value">{selectedCrop.sell_price}</span>
               </div>
               <div className="crop-stat">
-                <span className="crop-stat-label">⭐ 经验奖励</span>
+                <span className="crop-stat-label">⭐ {t('expReward', lang)}</span>
                 <span className="crop-stat-value">{selectedCrop.exp_reward}</span>
               </div>
               <div className="crop-stat">
-                <span className="crop-stat-label">💧 浇水状态</span>
-                <span className="crop-stat-value">{selectedPlot.is_watered ? '已浇水' : '未浇水'}</span>
+                <span className="crop-stat-label">💧 {t('waterStatus', lang)}</span>
+                <span className="crop-stat-value">{selectedPlot.is_watered ? t('wateredYes', lang) : t('wateredNo', lang)}</span>
               </div>
               <div className="crop-stat">
-                <span className="crop-stat-label">✅ 成熟状态</span>
-                <span className="crop-stat-value">{selectedPlot.is_ready ? '已成熟' : '生长中'}</span>
+                <span className="crop-stat-label">✅ {t('readyStatus', lang)}</span>
+                <span className="crop-stat-value">{selectedPlot.is_ready ? t('readyYes', lang) : t('readyNo', lang)}</span>
               </div>
             </div>
             <div className="crop-growth-process">
@@ -300,27 +301,27 @@ export default function FarmView({ playerId, player, notify, refresh, emitPartic
 
         {/* 农场概况 */}
         <div className="panel">
-          <div className="panel-title">📊 农场概况</div>
+          <div className="panel-title">📊 {t('farmOverview', lang)}</div>
           <div className="farm-stats">
             <div className="farm-stat-row">
-              <span style={{ color: 'var(--text-dim)' }}>总面积</span>
-              <span>{plots.length} 格</span>
+              <span style={{ color: 'var(--text-dim)' }}>{t('totalPlots', lang)}</span>
+              <span>{plots.length} {t('unit', lang)}</span>
             </div>
             <div className="farm-stat-row">
-              <span style={{ color: 'var(--text-dim)' }}>已种植</span>
-              <span>{plots.filter(p => p.crop_id).length} 格</span>
+              <span style={{ color: 'var(--text-dim)' }}>{t('planted', lang)}</span>
+              <span>{plots.filter(p => p.crop_id).length} {t('unit', lang)}</span>
             </div>
             <div className="farm-stat-row">
-              <span style={{ color: 'var(--text-dim)' }}>已浇水</span>
-              <span>💧 {plots.filter(p => p.is_watered).length} 格</span>
+              <span style={{ color: 'var(--text-dim)' }}>{t('watered', lang)}</span>
+              <span>💧 {plots.filter(p => p.is_watered).length} {t('unit', lang)}</span>
             </div>
             <div className="farm-stat-row">
-              <span style={{ color: 'var(--text-dim)' }}>可收获</span>
-              <span style={{ color: 'var(--gold)', fontWeight: 'bold' }}>✅ {plots.filter(p => p.is_ready).length} 格</span>
+              <span style={{ color: 'var(--text-dim)' }}>{t('ready', lang)}</span>
+              <span style={{ color: 'var(--gold)', fontWeight: 'bold' }}>✅ {plots.filter(p => p.is_ready).length} {t('unit', lang)}</span>
             </div>
             <div className="farm-stat-row">
-              <span style={{ color: 'var(--text-dim)' }}>空闲</span>
-              <span>{plots.filter(p => !p.crop_id).length} 格</span>
+              <span style={{ color: 'var(--text-dim)' }}>{t('empty', lang)}</span>
+              <span>{plots.filter(p => !p.crop_id).length} {t('unit', lang)}</span>
             </div>
           </div>
         </div>

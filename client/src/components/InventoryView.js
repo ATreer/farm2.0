@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import * as api from '../services/api';
+import { t } from '../services/i18n';
 
-export default function InventoryView({ playerId, notify, refresh, emitParticle }) {
+export default function InventoryView({ playerId, notify, refresh, emitParticle, lang }) {
   const [items, setItems] = useState([]);
   const [filter, setFilter] = useState('all');
 
@@ -20,13 +21,13 @@ export default function InventoryView({ playerId, notify, refresh, emitParticle 
 
   const handleSell = async (item, event) => {
     if (item.item_type !== 'harvest') {
-      notify('只有收获物可以出售', 'error');
+      notify(t('cannotSell', lang), 'error');
       return;
     }
     try {
       const result = await api.sellItem(playerId, item.item_type, item.item_id, 1);
       setItems(result.inventory);
-      notify(`出售成功！+${result.earned}💰`, 'success');
+      notify(t('sellSuccess', lang, { gold: result.earned }), 'success');
       emitParticle('gold', event);
     } catch (e) {
       notify(e.message, 'error');
@@ -38,7 +39,7 @@ export default function InventoryView({ playerId, notify, refresh, emitParticle 
     try {
       const result = await api.sellItem(playerId, item.item_type, item.item_id, item.quantity);
       setItems(result.inventory);
-      notify(`全部出售成功！+${result.earned}💰`, 'success');
+      notify(t('sellAllSuccess', lang, { gold: result.earned }), 'success');
       emitParticle('gold', event);
     } catch (e) {
       notify(e.message, 'error');
@@ -50,21 +51,21 @@ export default function InventoryView({ playerId, notify, refresh, emitParticle 
     : items.filter(i => i.item_type === filter);
 
   const typeLabels = {
-    seed: '🌱 种子',
-    harvest: '🌾 收获',
-    tool: '🔧 道具',
+    seed: `🌱 ${t('typeSeed', lang)}`,
+    harvest: `🌾 ${t('typeHarvest', lang)}`,
+    tool: `🔧 ${t('typeTool', lang)}`,
   };
 
   const filters = [
-    { key: 'all', label: '📦 全部' },
-    { key: 'seed', label: '🌱 种子' },
-    { key: 'harvest', label: '🌾 收获' },
-    { key: 'tool', label: '🔧 道具' },
+    { key: 'all', label: `📦 ${t('all', lang)}` },
+    { key: 'seed', label: `🌱 ${t('seeds', lang)}` },
+    { key: 'harvest', label: `🌾 ${t('harvest', lang)}` },
+    { key: 'tool', label: `🔧 ${t('tools', lang)}` },
   ];
 
   return (
     <div className="panel">
-      <div className="panel-title">🎒 背包 ({items.length}种物品)</div>
+      <div className="panel-title">🎒 {t('inventory', lang)} ({items.length}{t('itemTypes', lang)})</div>
 
       <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', flexWrap: 'wrap' }}>
         {filters.map(f => (
@@ -80,7 +81,7 @@ export default function InventoryView({ playerId, notify, refresh, emitParticle 
 
       {filteredItems.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '40px', color: '#555', fontSize: '14px' }}>
-          背包空空如也...
+          {t('emptyInventory', lang)}
         </div>
       ) : (
         <div className="inventory-grid">
@@ -96,14 +97,14 @@ export default function InventoryView({ playerId, notify, refresh, emitParticle 
                     className="btn btn-small btn-gold"
                     onClick={(e) => handleSell(item, e)}
                   >
-                    出售
+                    {t('sell', lang)}
                   </button>
                   {item.quantity > 1 && (
                     <button
                       className="btn btn-small"
                       onClick={(e) => handleSellAll(item, e)}
                     >
-                      全部
+                      {t('sellAll', lang)}
                     </button>
                   )}
                 </div>

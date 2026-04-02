@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import * as api from '../services/api';
+import { t } from '../services/i18n';
 
-export default function ShopView({ playerId, player, notify, refresh, emitParticle }) {
+export default function ShopView({ playerId, player, notify, refresh, emitParticle, lang }) {
   const [items, setItems] = useState([]);
   const [filter, setFilter] = useState('all');
   const [buyQty, setBuyQty] = useState(1);
@@ -22,7 +23,7 @@ export default function ShopView({ playerId, player, notify, refresh, emitPartic
   const handleBuy = async (item, event) => {
     try {
       const result = await api.buyItem(playerId, item.id, buyQty);
-      notify(`购买了 ${buyQty}× ${item.name}！`, 'success');
+      notify(`${t('buy', lang)} ${buyQty}× ${item.name}!`, 'success');
       emitParticle('gold', event);
       loadData();
     } catch (e) {
@@ -35,14 +36,14 @@ export default function ShopView({ playerId, player, notify, refresh, emitPartic
     : items.filter(i => i.item_type === filter);
 
   const filters = [
-    { key: 'all', label: '📦 全部' },
-    { key: 'seed', label: '🌱 种子' },
-    { key: 'tool', label: '🔧 道具' },
+    { key: 'all', label: `📦 ${t('all', lang)}` },
+    { key: 'seed', label: `🌱 ${t('seeds', lang)}` },
+    { key: 'tool', label: `🔧 ${t('tools', lang)}` },
   ];
 
   return (
     <div className="panel">
-      <div className="panel-title">🏪 商店　　💰 当前金币：{player?.gold || 0}</div>
+      <div className="panel-title">🏪 {t('shop', lang)}　　💰 {t('currentGold', lang)}：{player?.gold || 0}</div>
 
       <div style={{ display: 'flex', gap: '8px', marginBottom: '14px', flexWrap: 'wrap', alignItems: 'center' }}>
         {filters.map(f => (
@@ -54,7 +55,7 @@ export default function ShopView({ playerId, player, notify, refresh, emitPartic
             {f.label}
           </button>
         ))}
-        <span style={{ fontSize: '12px', color: 'var(--text-dim)', marginLeft: '12px' }}>购买数量：</span>
+        <span style={{ fontSize: '12px', color: 'var(--text-dim)', marginLeft: '12px' }}>{t('buyQty', lang)}</span>
         {[1, 5, 10].map(q => (
           <button
             key={q}
@@ -78,7 +79,7 @@ export default function ShopView({ playerId, player, notify, refresh, emitPartic
             </div>
 
             {item.locked ? (
-              <div className="shop-lock-info">🔒 需要 Lv.{item.unlock_level} 解锁</div>
+              <div className="shop-lock-info">🔒 {t('locked', lang, { level: item.unlock_level })}</div>
             ) : (
               <div className="shop-price">
                 <span className="shop-price-value">💰 {item.price * buyQty}</span>
@@ -87,7 +88,7 @@ export default function ShopView({ playerId, player, notify, refresh, emitPartic
                   onClick={(e) => handleBuy(item, e)}
                   disabled={(player?.gold || 0) < item.price * buyQty}
                 >
-                  购买 ×{buyQty}
+                  {t('buy', lang)} ×{buyQty}
                 </button>
               </div>
             )}

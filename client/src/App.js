@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import * as api from './services/api';
 import { createParticleOverlay } from './services/particles';
+import { t } from './services/i18n';
 import StartScreen from './components/StartScreen';
 import TopBar from './components/TopBar';
 import FarmView from './components/FarmView';
@@ -8,6 +9,7 @@ import InventoryView from './components/InventoryView';
 import ShopView from './components/ShopView';
 import UpgradeView from './components/UpgradeView';
 import CharacterView from './components/CharacterView';
+import SettingsView from './components/SettingsView';
 
 const PAGES = {
   farm: 'farm',
@@ -15,14 +17,7 @@ const PAGES = {
   shop: 'shop',
   upgrade: 'upgrade',
   character: 'character',
-};
-
-const PAGE_NAMES = {
-  farm: '🌾 农场',
-  inventory: '🎒 背包',
-  shop: '🏪 商店',
-  upgrade: '⬆️ 升级',
-  character: '👤 人物',
+  settings: 'settings',
 };
 
 function App() {
@@ -32,6 +27,7 @@ function App() {
   const [currentPage, setCurrentPage] = useState(PAGES.farm);
   const [notification, setNotification] = useState(null);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [lang, setLang] = useState(() => localStorage.getItem('farmLang') || 'zh');
   const phaserRef = useRef(null);
 
   // 初始化 Phaser 粒子覆盖层
@@ -85,8 +81,8 @@ function App() {
   useEffect(() => {
     const load = async () => {
       try {
-        const t = await api.getGameTime();
-        setTime(t);
+        const data = await api.getGameTime();
+        setTime(data);
       } catch (e) {
         console.error('时间加载失败', e);
       }
@@ -94,7 +90,7 @@ function App() {
     load();
     const interval = setInterval(load, 10000);
     return () => clearInterval(interval);
-  }, []);
+  }, [refreshKey]);
 
   // 自动刷新农田（生长更新）
   useEffect(() => {
@@ -111,7 +107,7 @@ function App() {
       setPlayer(p);
       setPlayerId(p.id);
       localStorage.setItem('farmPlayerId', p.id);
-      notify('欢迎来到像素农场！', 'success');
+      notify(t('welcome', lang), 'success');
     } catch (e) {
       notify(e.message, 'error');
     }
@@ -119,8 +115,8 @@ function App() {
 
   const handleTimeAdvance = async (minutes) => {
     try {
-      const t = await api.advanceTime(minutes);
-      setTime(t);
+      const data = await api.advanceTime(minutes);
+      setTime(data);
       refresh();
     } catch (e) {
       notify(e.message, 'error');
@@ -130,18 +126,33 @@ function App() {
   const handleSleep = async () => {
     try {
       const result = await api.sleepAdvance(playerId);
+      // 立即更新所有数据
       setTime(result.time);
       setPlayer(result.player);
-      notify('💤 一夜过去了，新的一天开始了！', 'success');
-      refresh();
+      // 强制刷新所有子组件
+      setRefreshKey(k => k + 1);
+      // 延迟再刷一次，确保子组件拿到最新数据
+      setTimeout(() => {
+        setRefreshKey(k => k + 1);
+      }, 500);
+      notify('💤 ' + t('sleepSuccess', lang), 'success');
     } catch (e) {
       notify(e.message, 'error');
     }
   };
 
   if (!playerId || !player) {
-    return <StartScreen onStart={handleStart} />;
+    return <StartScreen onStart={handleStart} lang={lang} />;
   }
+
+  const navItems = [
+    { key: PAGES.farm, icon: '🌾', label: t('navFarm', lang) },
+    { key: PAGES.inventory, icon: '🎒', label: t('navInventory', lang) },
+    { key: PAGES.shop, icon: '🏪', label: t('navShop', lang) },
+    { key: PAGES.upgrade, icon: '⬆️', label: t('navUpgrade', lang) },
+    { key: PAGES.character, icon: '👤', label: t('navCharacter', lang) },
+    { key: PAGES.settings, icon: '⚙️', label: t('navSettings', lang) },
+  ];
 
   return (
     <div className="app-container">
@@ -154,18 +165,19 @@ function App() {
       <TopBar
         player={player}
         time={time}
+        lang={lang}
         onTimeAdvance={handleTimeAdvance}
         onSleep={handleSleep}
       />
 
       <div className="nav-tabs">
-        {Object.entries(PAGES).map(([key, name]) => (
+        {navItems.map(item => (
           <button
-            key={key}
-            className={`nav-tab ${currentPage === key ? 'active' : ''}`}
-            onClick={() => setCurrentPage(key)}
+            key={item.key}
+            className={`nav-tab ${currentPage === item.key ? 'active' : ''}`}
+            onClick={() => setCurrentPage(item.key)}
           >
-            {name}
+            {item.icon} {item.label}
           </button>
         ))}
       </div>
@@ -174,6 +186,7 @@ function App() {
         <FarmView
           playerId={playerId}
           player={player}
+          lang={lang}
           notify={notify}
           refresh={refresh}
           emitParticle={emitParticle}
@@ -182,6 +195,7 @@ function App() {
       {currentPage === PAGES.inventory && (
         <InventoryView
           playerId={playerId}
+          lang={lang}
           notify={notify}
           refresh={refresh}
           emitParticle={emitParticle}
@@ -191,6 +205,7 @@ function App() {
         <ShopView
           playerId={playerId}
           player={player}
+          lang={lang}
           notify={notify}
           refresh={refresh}
           emitParticle={emitParticle}
@@ -200,13 +215,17 @@ function App() {
         <UpgradeView
           playerId={playerId}
           player={player}
+          lang={lang}
           notify={notify}
           refresh={refresh}
           emitParticle={emitParticle}
         />
       )}
       {currentPage === PAGES.character && (
-        <CharacterView player={player} />
+        <CharacterView player={player} lang={lang} />
+      )}
+      {currentPage === PAGES.settings && (
+        <SettingsView lang={lang} setLang={setLang} notify={notify} />
       )}
     </div>
   );

@@ -1,6 +1,7 @@
 import React from 'react';
+import { t } from '../services/i18n';
 
-export default function TopBar({ player, time, onTimeAdvance, onSleep }) {
+export default function TopBar({ player, time, onTimeAdvance, onSleep, lang }) {
   if (!player) return null;
 
   const expPercent = player.nextLevelExp > 0
@@ -16,7 +17,7 @@ export default function TopBar({ player, time, onTimeAdvance, onSleep }) {
           <span className="level-badge">Lv.{player.level}</span>
         </div>
         <div className="exp-bar-container">
-          <span>经验</span>
+          <span>{t('exp', lang)}</span>
           <div className="exp-bar">
             <div className="exp-bar-fill" style={{ width: `${expPercent}%` }} />
           </div>
@@ -32,14 +33,14 @@ export default function TopBar({ player, time, onTimeAdvance, onSleep }) {
         {time && (
           <>
             <span className="season-icon">{time.seasonEmoji}</span>
-            <span>{time.seasonName} 第{time.day}天</span>
+            <span>{t(time.season, lang)} {t('day', lang, { n: time.day })}</span>
             <span>🕐 {time.timeStr}</span>
           </>
         )}
         <div className="time-controls">
-          <button className="btn btn-small" onClick={() => onTimeAdvance(10)}>+10分</button>
-          <button className="btn btn-small" onClick={() => onTimeAdvance(60)}>+1时</button>
-          <button className="btn btn-small btn-primary" onClick={onSleep}>💤 睡觉</button>
+          <button className="btn btn-small" onClick={() => onTimeAdvance(10)}>{t('timeAdvance10', lang)}</button>
+          <button className="btn btn-small" onClick={() => onTimeAdvance(60)}>{t('timeAdvance60', lang)}</button>
+          <button className="btn btn-small btn-primary" onClick={onSleep}>💤 {t('sleep', lang)}</button>
         </div>
       </div>
     </div>

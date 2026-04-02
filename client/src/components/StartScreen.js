@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
+import { t } from '../services/i18n';
 
-export default function StartScreen({ onStart }) {
+export default function StartScreen({ onStart, lang }) {
   const [name, setName] = useState('');
 
   const handleStart = () => {
@@ -14,23 +15,23 @@ export default function StartScreen({ onStart }) {
 
   return (
     <div className="start-screen">
-      <div className="start-title">🌾 像素农场 🌾</div>
-      <div className="start-subtitle">种下希望，收获快乐</div>
+      <div className="start-title">🌾 {t('appTitle', lang)} 🌾</div>
+      <div className="start-subtitle">{t('appSubtitle', lang)}</div>
       <div className="start-character">🧑‍🌾</div>
       <input
         className="start-input"
         type="text"
-        placeholder="输入你的名字"
+        placeholder={t('namePlaceholder', lang)}
         value={name}
         onChange={(e) => setName(e.target.value)}
         onKeyDown={handleKeyDown}
         maxLength={12}
       />
       <button className="btn btn-primary start-btn" onClick={handleStart}>
-        开始种田
+        {t('startBtn', lang)}
       </button>
       <div className="start-tips">
-        种植 → 浇水 → 等待生长 → 收获 → 出售 → 升级
+        {t('startTips', lang)}
       </div>
     </div>
   );
