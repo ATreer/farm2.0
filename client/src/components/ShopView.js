@@ -72,7 +72,13 @@ export default function ShopView({ playerId, player, notify, refresh, emitPartic
         {filteredItems.map(item => (
           <div key={item.id} className={`shop-item ${item.locked ? 'locked' : ''}`}>
             <div className="shop-item-header">
-              <span className="shop-emoji">{item.emoji}</span>
+              <span className="shop-emoji">
+                {item.id === 'seed_wheat' ? (
+                  <img src="/seed_wheat.png" alt={item.name} style={{ width: 36, height: 36, objectFit: 'contain' }} />
+                ) : (
+                  item.emoji
+                )}
+              </span>
               <div className="shop-info">
                 <div className="shop-name">{item.name}</div>
                 <div className="shop-desc">{item.description}</div>
