@@ -1,5 +1,5 @@
-// API 基础地址：生产环境直接指向后端端口，开发环境由 webpack proxy 转发
-const API_BASE = process.env.NODE_ENV === 'production' ? 'http://localhost:3001' : '';
+// API 基础地址：直接指向后端端口
+const API_BASE = 'http://localhost:3001';
 
 const request = async (method, path, body) => {
   const opts = {

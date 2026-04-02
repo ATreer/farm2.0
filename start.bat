@@ -118,18 +118,15 @@ echo [3/4] 🔨 构建前端...
 
 cd /d "%SCRIPT_DIR%client"
 
-:: 简单判断：build 目录是否存在
-if exist "build\index.html" (
-    echo      ⏭️  已有编译产物，跳过（如需重编译请删除 build 目录）
-) else (
-    echo      正在编译前端（约 1-2 分钟）...
-    call npx react-scripts build 2>&1
-    if errorlevel 1 (
-        echo      ❌ 前端编译失败
-        goto :fail
-    )
-    echo      ✅ 前端编译成功
+:: 每次都重新编译，确保代码最新
+echo      正在编译前端（约 1-2 分钟）...
+if exist build rmdir /s /q build 2>nul
+call npx react-scripts build 2>&1
+if errorlevel 1 (
+    echo      ❌ 前端编译失败
+    goto :fail
 )
+echo      ✅ 前端编译成功
 echo.
 
 :: ==================== [4/4] 启动前端服务 ====================

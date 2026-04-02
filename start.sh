@@ -134,34 +134,23 @@ echo "🔨 [3/4] 构建前端..."
 
 cd "$SCRIPT_DIR/client"
 
-NEED_REBUILD=true
-if [ -d "build" ] && [ -f ".build_hash" ]; then
-  NEW_HASH=$(find src public -type f -exec md5sum {} \; 2>/dev/null | md5sum | cut -d' ' -f1)
-  OLD_HASH=$(cat ".build_hash")
-  if [ "$NEW_HASH" = "$OLD_HASH" ]; then
-    NEED_REBUILD=false
-    echo "   ⏭️  源码未变更，跳过编译"
-  fi
-fi
+# 每次都重新编译，确保代码最新
+echo "   正在编译前端..."
+BUILD_LOG="$SCRIPT_DIR/client/build.log"
+rm -rf build
+npx react-scripts build > "$BUILD_LOG" 2>&1
 
-if [ "$NEED_REBUILD" = true ]; then
-  echo "   正在编译前端..."
-  BUILD_LOG="$SCRIPT_DIR/client/build.log"
-  npx react-scripts build > "$BUILD_LOG" 2>&1
-
-  if [ $? -ne 0 ]; then
-    echo ""
-    echo "   ❌ 前端编译失败！"
-    tail -20 "$BUILD_LOG"
-    kill $SERVER_PID 2>/dev/null
-    rm -f "$BUILD_LOG"
-    exit 1
-  fi
-
-  find src public -type f -exec md5sum {} \; 2>/dev/null | md5sum | cut -d' ' -f1 > ".build_hash"
+if [ $? -ne 0 ]; then
+  echo ""
+  echo "   ❌ 前端编译失败！"
+  tail -20 "$BUILD_LOG"
+  kill $SERVER_PID 2>/dev/null
   rm -f "$BUILD_LOG"
-  echo "   ✅ 前端编译成功"
+  exit 1
 fi
+
+rm -f "$BUILD_LOG"
+echo "   ✅ 前端编译成功"
 
 # ==================== [4/4] 启动前端服务 ====================
 echo ""
