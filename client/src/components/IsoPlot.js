@@ -11,7 +11,10 @@ export default function IsoPlot({ plot, emoji, isAnimating, onClick, zIndex }) {
   return (
     <div
       className={`iso-plot ${is_watered ? 'watered' : ''} ${is_ready ? 'ready' : ''} ${isAnimating ? 'plot-animating' : ''}`}
-      style={{ zIndex }}
+      style={{
+        zIndex,
+        backgroundImage: 'url(/plot.png)',
+      }}
       onClick={onClick}
       title={`[${row_idx}, ${col_idx}] ${crop_id || ''}`}
     >

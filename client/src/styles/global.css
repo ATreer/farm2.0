@@ -424,8 +424,11 @@ body.farm-bg .crop-info-panel {
 .iso-plot {
   width: 100%;
   height: 100%;
-  background: rgba(139, 69, 19, 0.3);
-  border: 1px solid rgba(90, 48, 16, 0.5);
+  background-color: rgba(139, 69, 19, 0.15);
+  background-size: 100% 100%;
+  background-position: center;
+  background-repeat: no-repeat;
+  border: none;
   border-radius: 3px;
   display: flex;
   flex-direction: column;
@@ -433,7 +436,6 @@ body.farm-bg .crop-info-panel {
   justify-content: center;
   cursor: pointer;
   transition: all 0.2s ease;
-  backdrop-filter: blur(1px);
   transform-origin: center center;
   transform: skew(-44deg, 0);
   box-sizing: border-box;
@@ -494,9 +496,9 @@ body.farm-bg .crop-info-panel {
 }
 
 @keyframes isoPlotPop {
-  0% { transform: translate(-50%, -50%) scale(var(--pop-start, 1)); }
-  40% { transform: translate(-50%, -50%) scale(calc(var(--pop-start, 1) * 1.2)); }
-  100% { transform: translate(-50%, -50%) scale(var(--pop-start, 1)); }
+  0% { transform: skew(-44deg, 0) scale(1); }
+  40% { transform: skew(-44deg, 0) scale(1.15); }
+  100% { transform: skew(-44deg, 0) scale(1); }
 }
 
 .iso-plot-emoji {
@@ -979,7 +981,7 @@ body.farm-bg .crop-info-panel {
 /* ==================== 通知/消息 ==================== */
 .notification {
   position: fixed;
-  top: 16px;
+  bottom: 16px;
   right: 16px;
   background: var(--bg-card);
   border: var(--pixel-border) var(--accent);
@@ -998,8 +1000,8 @@ body.farm-bg .crop-info-panel {
 .notification.info { border-color: var(--blue); }
 
 @keyframes slideIn {
-  from { transform: translateX(120%); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
+  from { transform: translateY(120%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
 }
 
 /* ==================== 开始界面 ==================== */
