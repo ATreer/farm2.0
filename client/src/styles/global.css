@@ -544,13 +544,13 @@ body.farm-bg .crop-info-panel {
 }
 
 @keyframes plantBob {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-3px); }
+  0%, 100% { transform: skew(44deg, 0) translateY(0); }
+  50% { transform: skew(44deg, 0) translateY(-3px); }
 }
 
 @keyframes waterDrip {
-  0%, 100% { transform: translateY(0); opacity: 1; }
-  50% { transform: translateY(2px); opacity: 0.7; }
+  0%, 100% { transform: skew(44deg, 0) translateY(0); opacity: 1; }
+  50% { transform: skew(44deg, 0) translateY(2px); opacity: 0.7; }
 }
 
 /* ==================== 快捷操作按钮 ==================== */
