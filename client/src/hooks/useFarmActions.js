@@ -44,6 +44,7 @@ export default function useFarmActions(playerId, cropsMap, emitParticle, notify,
 
   // 点击农田
   const handlePlotClick = useCallback(async (plot, event) => {
+    event.stopPropagation();
     setSelectedPlot(plot);
 
     if (!plot.crop_id) {
@@ -59,6 +60,7 @@ export default function useFarmActions(playerId, cropsMap, emitParticle, notify,
         const result = await api.harvestPlot(playerId, plot.row_idx, plot.col_idx);
         notify(`${assets.notify.harvest} ${t('harvestSuccess', lang, { name: result.harvested.name, gold: result.harvested.sell_price, exp: result.harvested.exp_reward })}`, 'success');
         emitParticle('harvest', event);
+        setSelectedPlot(null);
         reload();
       } catch (e) {
         notify(e.message, 'error');

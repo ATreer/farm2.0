@@ -47,7 +47,6 @@ export default function FarmView({ playerId, player, notify, refresh, emitPartic
                   plot={plot}
                   emoji={getPlotEmoji(plot)}
                   isAnimating={animatingPlots.has(plot.id)}
-                  onClick={(e) => handlePlotClick(plot, e)}
                   emitParticle={emitParticle}
                 />
               </div>

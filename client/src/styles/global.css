@@ -470,9 +470,31 @@ body.farm-bg .crop-info-panel {
   /* 反向 skew 恢复直立 */
   transform: skew(44deg, 0);
   transform-origin: bottom center;
-  /* 水平居中，底部对齐到中间偏下 */
+  /* 水平居中 */
   align-self: center;
   margin-bottom: 15%;
+}
+
+/* 种子阶段：放大1倍(36→72px)，稍微右移 */
+.iso-plot-emoji.stage-seed {
+  margin-left: 10%;
+  margin-bottom: 20%;
+}
+
+.iso-plot-emoji.stage-seed .iso-plot-img {
+  width: 72px;
+  height: 72px;
+}
+
+/* 生长阶段：放大3倍(36→108px)，右移+上移 */
+.iso-plot-emoji.stage-growing {
+  margin-left: 15%;
+  margin-bottom: 40%;
+}
+
+.iso-plot-emoji.stage-growing .iso-plot-img {
+  width: 108px;
+  height: 108px;
 }
 
 .iso-plot-img {

@@ -26,7 +26,7 @@ function getStageImagePath(cropId, growthStage) {
   return `/${dir}/${cropId}.png`;
 }
 
-export default function IsoPlot({ plot, emoji, isAnimating, onClick, emitParticle, zIndex }) {
+export default function IsoPlot({ plot, emoji, isAnimating, emitParticle, zIndex }) {
   const { is_watered, is_ready, crop_id, growth_stage, row_idx, col_idx } = plot;
   const plotRef = useRef(null);
   const readyKeyRef = useRef(null);
@@ -62,9 +62,11 @@ export default function IsoPlot({ plot, emoji, isAnimating, onClick, emitParticl
     const imgSrc = getStageImagePath(crop_id, growth_stage);
     // 种子阶段不播放摇晃动画
     const noSway = growth_stage === 0;
+    // 阶段class：stage-seed / stage-growing
+    const stageClass = growth_stage === 0 ? 'stage-seed' : 'stage-growing';
 
     return (
-      <span className="iso-plot-emoji" style={noSway ? { animation: 'none' } : {}}>
+      <span className={`iso-plot-emoji ${stageClass}`} style={noSway ? { animation: 'none' } : {}}>
         <img
           src={imgSrc}
           alt={crop_id}
@@ -92,7 +94,7 @@ export default function IsoPlot({ plot, emoji, isAnimating, onClick, emitParticl
         zIndex,
         backgroundImage: 'url(/plot.png)',
       }}
-      onClick={onClick}
+      onClick
       title={`[${row_idx}, ${col_idx}] ${crop_id || ''}`}
     >
       {crop_id ? (
