@@ -8,9 +8,12 @@ import assets from '../config/assets';
 export default function IsoPlot({ plot, emoji, isAnimating, onClick, zIndex }) {
   const { is_watered, is_ready, crop_id, growth_stage, row_idx, col_idx } = plot;
 
+  // 已种植但未浇水 → dry（发干状态）
+  const isDry = crop_id && !is_watered && !is_ready;
+
   return (
     <div
-      className={`iso-plot ${is_watered ? 'watered' : ''} ${is_ready ? 'ready' : ''} ${isAnimating ? 'plot-animating' : ''}`}
+      className={`iso-plot ${is_watered ? 'watered' : ''} ${is_ready ? 'ready' : ''} ${isDry ? 'dry' : ''} ${isAnimating ? 'plot-animating' : ''}`}
       style={{
         zIndex,
         backgroundImage: 'url(/plot.png)',

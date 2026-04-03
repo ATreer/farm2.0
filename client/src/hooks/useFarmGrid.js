@@ -11,8 +11,9 @@ const DIRT_AREA = {
 
 const GRID_ROWS = 4;
 const GRID_COLS = 8;
-const TILE_FILL_X = 1.0;  // 左右无间隙
-const TILE_FILL_Y = 0.85;  // 上下保留间隙
+const TILE_FILL_X = 1.0;   // 左右无间隙
+const TILE_FILL_Y = 0.925;  // 上下间隙减半（从0.85提高）
+const ROW_COMPRESS = 0.5;   // 非首行Y轴压缩系数（上移）
 const SKEW_ANGLE = -44;
 const SKEW_TAN = Math.tan(Math.abs(SKEW_ANGLE) * Math.PI / 180);
 
@@ -60,7 +61,10 @@ export default function useFarmGrid(plots) {
     const skewOffsetX = (tileH / 2) * SKEW_TAN;
     const rowOffsetX = (row + 1) * 0.25 * tileW;
 
-    return { centerX: centerX - skewOffsetX + rowOffsetX, centerY, tileW, tileH };
+    // 非首行上移：将行向顶部压缩
+    const rowCompressY = row > 0 ? row * ROW_COMPRESS * (rowHeight * (1 - TILE_FILL_Y) / 2) : 0;
+
+    return { centerX: centerX - skewOffsetX + rowOffsetX, centerY: centerY - rowCompressY, tileW, tileH };
   };
 
   // 生成固定 4×8 网格
