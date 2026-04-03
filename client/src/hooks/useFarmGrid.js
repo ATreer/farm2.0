@@ -11,7 +11,8 @@ const DIRT_AREA = {
 
 const GRID_ROWS = 4;
 const GRID_COLS = 8;
-const TILE_FILL = 0.85;
+const TILE_FILL_X = 1.0;  // 左右无间隙
+const TILE_FILL_Y = 0.85;  // 上下保留间隙
 const SKEW_ANGLE = -44;
 const SKEW_TAN = Math.tan(Math.abs(SKEW_ANGLE) * Math.PI / 180);
 
@@ -51,10 +52,10 @@ export default function useFarmGrid(plots) {
     const centerX = centerLeftX + (centerRightX - centerLeftX) * colT;
 
     const rowWidth = centerRightX - centerLeftX;
-    const tileW = (rowWidth / GRID_COLS) * TILE_FILL;
+    const tileW = (rowWidth / GRID_COLS) * TILE_FILL_X;
 
     const rowHeight = bottomEdge.y - topEdge.y;
-    const tileH = rowHeight * TILE_FILL;
+    const tileH = rowHeight * TILE_FILL_Y;
 
     const skewOffsetX = (tileH / 2) * SKEW_TAN;
     const rowOffsetX = (row + 1) * 0.25 * tileW;
