@@ -191,8 +191,8 @@ export default function FarmView({ playerId, player, notify, refresh, emitPartic
     // skew(-44deg) 补偿：偏移量 = tileH * tan(44°)
     const skewOffsetX = (tileH / 2) * SKEW_TAN;
 
-    // 每行起始 x 向右偏移：第0行不偏移，第1行+0.25×tileW，第2行+0.5×，第3行+0.75×
-    const rowOffsetX = row * 0.25 * tileW;
+    // 每行起始 x 向右偏移：第0行+1/8×tileW，第1行+1/4×，第2行+3/8×，第3行+1/2×
+    const rowOffsetX = (row + 1) * 0.125 * tileW;
 
     return {
       centerX: centerX - skewOffsetX + rowOffsetX,
