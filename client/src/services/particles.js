@@ -111,7 +111,26 @@ class ParticleScene extends Phaser.Scene {
       case 'gold': this._emitGold(x, y); break;
       case 'exp': this._emitExp(x, y); break;
       case 'sparkle': this._emitSparkle(x, y); break;
+      case 'ready': return this._emitReady(x, y); break;
     }
+  }
+
+  // 停止指定位置的 ready 粒子
+  stopReady(key) {
+    if (this.particles[key]) {
+      this.particles[key].emitter.stop();
+      this.time.delayedCall(2000, () => {
+        if (this.particles[key]) {
+          this.particles[key].emitter.destroy();
+          delete this.particles[key];
+        }
+      });
+    }
+  }
+
+  // 停止所有 ready 粒子
+  stopAllReady() {
+    Object.keys(this.particles).forEach(key => this.stopReady(key));
   }
 
   _emitWater(x, y) {
@@ -236,6 +255,46 @@ class ParticleScene extends Phaser.Scene {
     emitter.explode(6);
     this.time.delayedCall(700, () => emitter.destroy());
   }
+
+  // 成熟作物持续粒子飞舞（金色星星 + 闪光）
+  _emitReady(x, y) {
+    const key = `ready-${Math.round(x)}-${Math.round(y)}`;
+
+    // 如果已有同位置粒子，先清理
+    if (this.particles[key]) {
+      this.particles[key].emitter.destroy();
+    }
+
+    const emitter = this.add.particles(x, y, 'star', {
+      speed: { min: 10, max: 35 },
+      angle: { min: -120, max: -60 },
+      scale: { start: 0.8, end: 0 },
+      alpha: { start: 0.9, end: 0 },
+      lifespan: { min: 1200, max: 2500 },
+      frequency: 400,
+      quantity: 1,
+      gravityY: -25,
+      tint: 0xffd700,
+      emitting: true,
+    });
+
+    const sparkleEmitter = this.add.particles(x, y, 'sparkle', {
+      speed: { min: 8, max: 25 },
+      angle: { min: 0, max: 360 },
+      scale: { start: 1.2, end: 0 },
+      alpha: { start: 0.7, end: 0 },
+      lifespan: { min: 800, max: 1800 },
+      frequency: 600,
+      quantity: 1,
+      gravityY: -15,
+      tint: 0xffffaa,
+      emitting: true,
+    });
+
+    this.particles[key] = { emitter, sparkleEmitter };
+
+    return key;
+  }
 }
 
 /**
@@ -276,7 +335,13 @@ export function createParticleOverlay(parentId) {
   return {
     game, scene,
     emitEffect(type, screenX, screenY) {
-      if (scene && scene.scene.isActive()) scene.emitEffect(type, screenX, screenY);
+      if (scene && scene.scene.isActive()) return scene.emitEffect(type, screenX, screenY);
+    },
+    stopReady(key) {
+      if (scene && scene.scene.isActive()) scene.stopReady(key);
+    },
+    stopAllReady() {
+      if (scene && scene.scene.isActive()) scene.stopAllReady();
     },
     destroy() {
       window.removeEventListener('resize', handleResize);

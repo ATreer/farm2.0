@@ -449,15 +449,6 @@ body.farm-bg .crop-info-panel {
   filter: brightness(1.1) saturate(0.8);
 }
 
-.iso-plot.ready {
-  animation: isoReadyPulse 1.2s infinite;
-}
-
-@keyframes isoReadyPulse {
-  0%, 100% { filter: brightness(1) drop-shadow(0 0 4px rgba(255, 215, 0, 0.4)); }
-  50% { filter: brightness(1.2) drop-shadow(0 0 10px rgba(255, 215, 0, 0.7)); }
-}
-
 /* 种子下落动画 */
 .iso-plot.plot-animating .iso-plot-emoji {
   animation: seedDrop 0.5s ease-in forwards;
