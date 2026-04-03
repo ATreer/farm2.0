@@ -15,10 +15,7 @@ const MODES = {
 const STAGE_EMOJIS = assets.crop.stageDefault;
 
 // ==================== 斜视角农田配置 ====================
-// 荒地 CSS 参数: left:16.5% top:48.2% width:62% height:34% skewX(-44deg)
-// transform-origin: center → 中心点 (47.5%, 65.2%)
-// skewX(-44deg): x' = x + (y - 65.2) × (-tan44°)
-// 平行四边形四角坐标（百分比，相对于背景图尺寸）
+// 荒地平行四边形四角坐标（百分比，相对于视口）
 const DIRT_AREA = {
   topLeft:     { x: 32.92, y: 48.2 },
   topRight:    { x: 94.92, y: 48.2 },
@@ -26,15 +23,12 @@ const DIRT_AREA = {
   bottomRight: { x: 62.08, y: 82.2 },
 };
 
-// 固定网格尺寸（不跟随等级，均匀铺满荒地）
+// 固定网格尺寸
 const GRID_ROWS = 4;
 const GRID_COLS = 8;
 
-// 斜视角参数
-const ISO_CONFIG = {
-  perspectiveScale: 0.6,   // 远处行缩放比例（越小远处的行越窄，斜视角感越强）
-  tilePadding: 0.72,       // 格子占单元格的比例（留间隙）
-};
+// 格子间隙比例（0.85 = 格子占单元格85%，留15%间隙）
+const TILE_FILL = 0.85;
 
 export default function FarmView({ playerId, player, notify, refresh, emitParticle, lang }) {
   const [plots, setPlots] = useState([]);
@@ -45,7 +39,6 @@ export default function FarmView({ playerId, player, notify, refresh, emitPartic
   const [inventory, setInventory] = useState([]);
   const [selectedPlot, setSelectedPlot] = useState(null);
   const [animatingPlots, setAnimatingPlots] = useState(new Set());
-  const farmRef = useRef(null);
 
   const MODE_LABELS = {
     none: `${assets.mode.view} ${t('modeView', lang)}`,
@@ -180,53 +173,48 @@ export default function FarmView({ playerId, player, notify, refresh, emitPartic
     { key: MODES.TOOL, label: `${assets.btn.tool} ${t('modeTool', lang)}`, color: '' },
   ];
 
-  // ==================== 斜视角位置计算 ====================
+  // ==================== 平行四边形网格计算 ====================
   // 建立 row_idx,col_idx → plot 数据的映射
   const plotMap = {};
   plots.forEach(p => { plotMap[`${p.row_idx}-${p.col_idx}`] = p; });
 
-  // 将 (row, col) 转换为背景图上的位置（百分比）
-  const getPlotPosition = (row, col) => {
+  // 计算第 row 行的左右边界 X 坐标和 Y 坐标
+  // row=0 是顶边（最远），row=GRID_ROWS 是底边（最近）
+  const getRowEdge = (row) => {
     const { topLeft, topRight, bottomLeft, bottomRight } = DIRT_AREA;
-    // 在 N×M 网格中，每个格子中心位于 (col+0.5)/M, (row+0.5)/N
-    const rowT = (row + 0.5) / GRID_ROWS;
-    const colT = (col + 0.5) / GRID_COLS;
-
-    // 双线性插值
-    const leftX = bottomLeft.x + (topLeft.x - bottomLeft.x) * rowT;
-    const rightX = bottomRight.x + (topRight.x - bottomRight.x) * rowT;
-    const leftY = bottomLeft.y + (topLeft.y - bottomLeft.y) * rowT;
-    const rightY = bottomRight.y + (topRight.y - bottomRight.y) * rowT;
-
+    const t = row / GRID_ROWS; // 0=顶边, 1=底边
     return {
-      x: leftX + (rightX - leftX) * colT,
-      y: leftY + (rightY - leftY) * colT,
+      leftX:  topLeft.x + (bottomLeft.x - topLeft.x) * t,
+      rightX: topRight.x + (bottomRight.x - topRight.x) * t,
+      y:      topLeft.y + (bottomLeft.y - topLeft.y) * t,
     };
   };
 
-  // 计算该行格子的大小（百分比，近大远小）
-  const getPlotSize = (row) => {
-    const { topLeft, topRight, bottomLeft, bottomRight } = DIRT_AREA;
-    const rowT = (row + 0.5) / GRID_ROWS;
-    const scale = 1.0 - rowT * (1.0 - ISO_CONFIG.perspectiveScale);
+  // 计算格子 (row, col) 的中心位置和尺寸
+  const getPlotGeometry = (row, col) => {
+    // 当前行和下一行的边缘
+    const topEdge = getRowEdge(row);
+    const bottomEdge = getRowEdge(row + 1);
 
-    // 该行左右边界
-    const leftX = bottomLeft.x + (topLeft.x - bottomLeft.x) * rowT;
-    const rightX = bottomRight.x + (topRight.x - bottomRight.x) * rowT;
+    // 当前行中心 Y
+    const centerY = (topEdge.y + bottomEdge.y) / 2;
+    // 当前行中心处的左右 X
+    const centerLeftX = (topEdge.leftX + bottomEdge.leftX) / 2;
+    const centerRightX = (topEdge.rightX + bottomEdge.rightX) / 2;
 
-    // 该行宽度
-    const rowWidth = Math.abs(rightX - leftX);
-    // 荒地总高度（底边Y - 顶边Y）
-    const totalHeight = Math.abs(bottomLeft.y - topLeft.y);
-    // 每格高度 = 总高度 / 行数，再乘透视缩放
-    const tileHeight = (totalHeight / GRID_ROWS) * scale;
+    // 列方向：将行宽度均分为 GRID_COLS 份
+    const colT = (col + 0.5) / GRID_COLS;
+    const centerX = centerLeftX + (centerRightX - centerLeftX) * colT;
 
-    const pad = ISO_CONFIG.tilePadding;
-    return {
-      width: (rowWidth / GRID_COLS) * pad,
-      height: tileHeight * pad,
-      scale,
-    };
+    // 格子宽度 = 当前行宽度 / GRID_COLS
+    const rowWidth = centerRightX - centerLeftX;
+    const tileW = (rowWidth / GRID_COLS) * TILE_FILL;
+
+    // 格子高度 = 行间距（顶边Y - 底边Y）
+    const rowHeight = bottomEdge.y - topEdge.y;
+    const tileH = rowHeight * TILE_FILL;
+
+    return { centerX, centerY, tileW, tileH };
   };
 
   // 生成固定 4×8 网格
@@ -318,47 +306,38 @@ export default function FarmView({ playerId, player, notify, refresh, emitPartic
           )}
         </div>
 
-        {/* 斜视角农田场景 */}
-        <div className="iso-scene" ref={farmRef}>
-          <div
-            className="iso-background"
-            style={{ backgroundImage: 'url(/background.png)' }}
-          >
-            {/* 斜视角农田格子层 */}
-            <div className="iso-plots-layer">
-              {sortedPlots.map(plot => {
-                const pos = getPlotPosition(plot.row, plot.col);
-                const { width, height, scale } = getPlotSize(plot.row);
+        {/* 斜视角农田格子层（直接铺在 body 背景上） */}
+        <div className="iso-plots-layer">
+          {sortedPlots.map(plot => {
+            const { centerX, centerY, tileW, tileH } = getPlotGeometry(plot.row, plot.col);
 
-                return (
-                  <div
-                    key={plot.id}
-                    className={`iso-plot ${plot.is_watered ? 'watered' : ''} ${plot.is_ready ? 'ready' : ''} ${animatingPlots.has(plot.id) ? 'plot-animating' : ''}`}
-                    style={{
-                      left: `${pos.x}%`,
-                      top: `${pos.y}%`,
-                      width: `${width}%`,
-                      height: `${height}%`,
-                      transform: `translate(-50%, -50%)`,
-                      zIndex: plot.row * GRID_COLS + plot.col + 1,
-                    }}
-                    onClick={(e) => handlePlotClick(plot, e)}
-                    title={`[${plot.row_idx}, ${plot.col_idx}] ${plot.crop_id || t('empty', lang)}`}
-                  >
-                    {plot.crop_id ? (
-                      <>
-                        <span className="iso-plot-emoji">{getPlotDisplayEmoji(plot)}</span>
-                        {plot.is_watered && <span className="iso-plot-water">{assets.plot.waterIndicator}</span>}
-                        {!plot.is_ready && <span className="iso-plot-stage">{plot.growth_stage + 1}/4</span>}
-                      </>
-                    ) : (
-                      <span className="iso-plot-empty">{assets.crop.emptyPlot}</span>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
+            return (
+              <div
+                key={plot.id}
+                className={`iso-plot ${plot.is_watered ? 'watered' : ''} ${plot.is_ready ? 'ready' : ''} ${animatingPlots.has(plot.id) ? 'plot-animating' : ''}`}
+                style={{
+                  left: `${centerX}%`,
+                  top: `${centerY}%`,
+                  width: `${tileW}%`,
+                  height: `${tileH}%`,
+                  transform: 'translate(-50%, -50%)',
+                  zIndex: plot.row * GRID_COLS + plot.col + 1,
+                }}
+                onClick={(e) => handlePlotClick(plot, e)}
+                title={`[${plot.row_idx}, ${plot.col_idx}] ${plot.crop_id || t('empty', lang)}`}
+              >
+                {plot.crop_id ? (
+                  <>
+                    <span className="iso-plot-emoji">{getPlotDisplayEmoji(plot)}</span>
+                    {plot.is_watered && <span className="iso-plot-water">{assets.plot.waterIndicator}</span>}
+                    {!plot.is_ready && <span className="iso-plot-stage">{plot.growth_stage + 1}/4</span>}
+                  </>
+                ) : (
+                  <span className="iso-plot-empty">{assets.crop.emptyPlot}</span>
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
 
@@ -406,33 +385,6 @@ export default function FarmView({ playerId, player, notify, refresh, emitPartic
             </div>
           </div>
         )}
-
-        {/* 农场概况 */}
-        <div className="panel">
-          <div className="panel-title">{assets.panel.overview} {t('farmOverview', lang)}</div>
-          <div className="farm-stats">
-            <div className="farm-stat-row">
-              <span style={{ color: 'var(--text-dim)' }}>{t('totalPlots', lang)}</span>
-              <span>{plots.length} {t('unit', lang)}</span>
-            </div>
-            <div className="farm-stat-row">
-              <span style={{ color: 'var(--text-dim)' }}>{t('planted', lang)}</span>
-              <span>{plots.filter(p => p.crop_id).length} {t('unit', lang)}</span>
-            </div>
-            <div className="farm-stat-row">
-              <span style={{ color: 'var(--text-dim)' }}>{t('watered', lang)}</span>
-              <span>{assets.status.watered} {plots.filter(p => p.is_watered).length} {t('unit', lang)}</span>
-            </div>
-            <div className="farm-stat-row">
-              <span style={{ color: 'var(--text-dim)' }}>{t('ready', lang)}</span>
-              <span style={{ color: 'var(--gold)', fontWeight: 'bold' }}>{assets.status.ready} {plots.filter(p => p.is_ready).length} {t('unit', lang)}</span>
-            </div>
-            <div className="farm-stat-row">
-              <span style={{ color: 'var(--text-dim)' }}>{t('empty', lang)}</span>
-              <span>{plots.filter(p => !p.crop_id).length} {t('unit', lang)}</span>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   );

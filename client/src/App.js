@@ -26,6 +26,22 @@ function App() {
   const [player, setPlayer] = useState(null);
   const [time, setTime] = useState(null);
   const [currentPage, setCurrentPage] = useState(PAGES.farm);
+
+  // 切换页面时控制 body 背景图
+  useEffect(() => {
+    if (currentPage === PAGES.farm) {
+      document.body.classList.add('farm-bg');
+      document.body.style.backgroundImage = 'url(/background.png)';
+    } else {
+      document.body.classList.remove('farm-bg');
+      document.body.style.backgroundImage = '';
+    }
+    return () => {
+      document.body.classList.remove('farm-bg');
+      document.body.style.backgroundImage = '';
+    };
+  }, [currentPage]);
+
   const [notification, setNotification] = useState(null);
   const [refreshKey, setRefreshKey] = useState(0);
   const [lang, setLang] = useState(() => localStorage.getItem('farmLang') || 'zh');
