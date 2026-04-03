@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import * as api from '../services/api';
 import { t } from '../services/i18n';
 import assets from '../config/assets';
+import IsoPlot from './IsoPlot';
 
 const MODES = {
   NONE: 'none',
@@ -11,25 +12,22 @@ const MODES = {
   TOOL: 'tool',
 };
 
-// 作物各阶段对应的 emoji 映射
 const STAGE_EMOJIS = assets.crop.stageDefault;
 
 // ==================== 斜视角农田配置 ====================
 // 荒地平行四边形四角坐标（百分比，相对于视口）
-// 基于 CSS: left:16.5% top:48.2% width:62% height:34% skewX(-44deg)
 const DIRT_AREA = {
-  topLeft:     { x: 29.0,  y: 48.2 },   // 左移约4%（半个格子宽度）
+  topLeft:     { x: 29.0,  y: 48.2 },
   topRight:    { x: 91.0,  y: 48.2 },
-  bottomLeft:  { x: 3.0,   y: 82.2 },   // 右移约3%
-  bottomRight: { x: 65.0,  y: 82.2 },   // 右移约3%
+  bottomLeft:  { x: 3.0,   y: 82.2 },
+  bottomRight: { x: 65.0,  y: 82.2 },
 };
 
-// 固定网格尺寸
 const GRID_ROWS = 4;
 const GRID_COLS = 8;
-
-// 格子间隙比例（0.85 = 格子占单元格85%，留15%间隙）
 const TILE_FILL = 0.85;
+const SKEW_ANGLE = -44; // 度
+const SKEW_TAN = Math.tan(Math.abs(SKEW_ANGLE) * Math.PI / 180); // tan(44°) ≈ 0.9657
 
 export default function FarmView({ playerId, player, notify, refresh, emitParticle, lang }) {
   const [plots, setPlots] = useState([]);
@@ -40,14 +38,6 @@ export default function FarmView({ playerId, player, notify, refresh, emitPartic
   const [inventory, setInventory] = useState([]);
   const [selectedPlot, setSelectedPlot] = useState(null);
   const [animatingPlots, setAnimatingPlots] = useState(new Set());
-
-  const MODE_LABELS = {
-    none: `${assets.mode.view} ${t('modeView', lang)}`,
-    plant: `${assets.mode.plant} ${t('modePlant', lang)}`,
-    water: `${assets.mode.water} ${t('modeWater', lang)}`,
-    harvest: `${assets.mode.harvest} ${t('modeHarvest', lang)}`,
-    tool: `${assets.mode.tool} ${t('modeTool', lang)}`,
-  };
 
   const loadData = async () => {
     try {
@@ -129,8 +119,6 @@ export default function FarmView({ playerId, player, notify, refresh, emitPartic
       } catch (e) {
         notify(e.message, 'error');
       }
-    } else if (plot.crop_id) {
-      // 查看作物信息
     }
   };
 
@@ -167,23 +155,13 @@ export default function FarmView({ playerId, player, notify, refresh, emitPartic
 
   const selectedCrop = selectedPlot?.crop_id ? cropsMap[selectedPlot.crop_id] : null;
 
-  const modeButtons = [
-    { key: MODES.PLANT, label: `${assets.btn.plant} ${t('modePlant', lang)}`, color: 'btn-green' },
-    { key: MODES.WATER, label: `${assets.btn.water} ${t('modeWater', lang)}`, color: 'btn-blue' },
-    { key: MODES.HARVEST, label: `${assets.btn.harvest} ${t('modeHarvest', lang)}`, color: 'btn-gold' },
-    { key: MODES.TOOL, label: `${assets.btn.tool} ${t('modeTool', lang)}`, color: '' },
-  ];
-
   // ==================== 平行四边形网格计算 ====================
-  // 建立 row_idx,col_idx → plot 数据的映射
   const plotMap = {};
   plots.forEach(p => { plotMap[`${p.row_idx}-${p.col_idx}`] = p; });
 
-  // 计算第 row 行的左右边界 X 坐标和 Y 坐标
-  // row=0 是顶边（最远），row=GRID_ROWS 是底边（最近）
   const getRowEdge = (row) => {
     const { topLeft, topRight, bottomLeft, bottomRight } = DIRT_AREA;
-    const t = row / GRID_ROWS; // 0=顶边, 1=底边
+    const t = row / GRID_ROWS;
     return {
       leftX:  topLeft.x + (bottomLeft.x - topLeft.x) * t,
       rightX: topRight.x + (bottomRight.x - topRight.x) * t,
@@ -191,31 +169,34 @@ export default function FarmView({ playerId, player, notify, refresh, emitPartic
     };
   };
 
-  // 计算格子 (row, col) 的中心位置和尺寸
+  // 计算格子 (row, col) 的中心位置、尺寸和 skew 补偿
   const getPlotGeometry = (row, col) => {
-    // 当前行和下一行的边缘
     const topEdge = getRowEdge(row);
     const bottomEdge = getRowEdge(row + 1);
 
-    // 当前行中心 Y
     const centerY = (topEdge.y + bottomEdge.y) / 2;
-    // 当前行中心处的左右 X
     const centerLeftX = (topEdge.leftX + bottomEdge.leftX) / 2;
     const centerRightX = (topEdge.rightX + bottomEdge.rightX) / 2;
 
-    // 列方向：将行宽度均分为 GRID_COLS 份
     const colT = (col + 0.5) / GRID_COLS;
     const centerX = centerLeftX + (centerRightX - centerLeftX) * colT;
 
-    // 格子宽度 = 当前行宽度 / GRID_COLS
     const rowWidth = centerRightX - centerLeftX;
     const tileW = (rowWidth / GRID_COLS) * TILE_FILL;
 
-    // 格子高度 = 行间距（顶边Y - 底边Y）
     const rowHeight = bottomEdge.y - topEdge.y;
     const tileH = rowHeight * TILE_FILL;
 
-    return { centerX, centerY, tileW, tileH };
+    // skew(-44deg) 补偿：偏移量 = tileH * tan(44°)
+    // 需要将中心向左移动半个偏移量（因为 skew 是以中心为参考）
+    const skewOffsetX = (tileH / 2) * SKEW_TAN;
+
+    return {
+      centerX: centerX - skewOffsetX,
+      centerY,
+      tileW,
+      tileH,
+    };
   };
 
   // 生成固定 4×8 网格
@@ -236,13 +217,11 @@ export default function FarmView({ playerId, player, notify, refresh, emitPartic
     }
   }
 
-  // 按行排序（远处先渲染）
   const sortedPlots = [...plotGrid].sort((a, b) => a.row - b.row || a.col - b.col);
 
   return (
     <div className="farm-container iso-farm-container">
       <div className="farm-grid-wrapper iso-farm-wrapper">
-        {/* 斜视角农田格子层（直接铺在 body 背景上） */}
         <div className="iso-plots-layer">
           {sortedPlots.map(plot => {
             const { centerX, centerY, tileW, tileH } = getPlotGeometry(plot.row, plot.col);
@@ -250,7 +229,7 @@ export default function FarmView({ playerId, player, notify, refresh, emitPartic
             return (
               <div
                 key={plot.id}
-                className={`iso-plot ${plot.is_watered ? 'watered' : ''} ${plot.is_ready ? 'ready' : ''} ${animatingPlots.has(plot.id) ? 'plot-animating' : ''}`}
+                className="iso-plot-wrapper"
                 style={{
                   left: `${centerX}%`,
                   top: `${centerY}%`,
@@ -259,18 +238,14 @@ export default function FarmView({ playerId, player, notify, refresh, emitPartic
                   transform: 'translate(-50%, -50%)',
                   zIndex: plot.row * GRID_COLS + plot.col + 1,
                 }}
-                onClick={(e) => handlePlotClick(plot, e)}
-                title={`[${plot.row_idx}, ${plot.col_idx}] ${plot.crop_id || t('empty', lang)}`}
               >
-                {plot.crop_id ? (
-                  <>
-                    <span className="iso-plot-emoji">{getPlotDisplayEmoji(plot)}</span>
-                    {plot.is_watered && <span className="iso-plot-water">{assets.plot.waterIndicator}</span>}
-                    {!plot.is_ready && <span className="iso-plot-stage">{plot.growth_stage + 1}/4</span>}
-                  </>
-                ) : (
-                  <span className="iso-plot-empty">{assets.crop.emptyPlot}</span>
-                )}
+                <IsoPlot
+                  plot={plot}
+                  emoji={getPlotDisplayEmoji(plot)}
+                  isAnimating={animatingPlots.has(plot.id)}
+                  onClick={(e) => handlePlotClick(plot, e)}
+                  zIndex={plot.row * GRID_COLS + plot.col + 1}
+                />
               </div>
             );
           })}
@@ -278,7 +253,6 @@ export default function FarmView({ playerId, player, notify, refresh, emitPartic
       </div>
 
       <div className="farm-sidebar">
-        {/* 作物信息面板 */}
         {selectedCrop && selectedPlot?.crop_id && (
           <div className="crop-info-panel">
             <div className="crop-info-header">

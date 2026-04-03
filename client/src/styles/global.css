@@ -60,46 +60,50 @@ body.farm-bg {
   background-attachment: fixed;
 }
 
-/* 农田页面 UI 半透明 */
+/* 农田页面 UI 半透明（更透明） */
 body.farm-bg .top-bar {
-  background: rgba(22, 33, 62, 0.6);
+  background: rgba(22, 33, 62, 0.35);
   backdrop-filter: blur(4px);
+  border-color: rgba(255, 255, 255, 0.08);
 }
 
 body.farm-bg .nav-tab {
-  background: rgba(22, 33, 62, 0.5);
+  background: rgba(22, 33, 62, 0.3);
   backdrop-filter: blur(4px);
+  border-color: rgba(255, 255, 255, 0.06);
 }
 
 body.farm-bg .nav-tab.active {
-  background: linear-gradient(135deg, rgba(233, 69, 96, 0.85) 0%, rgba(199, 53, 80, 0.85) 100%);
+  background: linear-gradient(135deg, rgba(233, 69, 96, 0.6) 0%, rgba(199, 53, 80, 0.6) 100%);
 }
 
 body.farm-bg .btn {
-  background: rgba(15, 52, 96, 0.5);
+  background: rgba(15, 52, 96, 0.35);
   backdrop-filter: blur(3px);
 }
 
 body.farm-bg .btn-green {
-  background: linear-gradient(135deg, rgba(45, 138, 110, 0.7) 0%, rgba(78, 204, 163, 0.7) 100%);
+  background: linear-gradient(135deg, rgba(45, 138, 110, 0.5) 0%, rgba(78, 204, 163, 0.5) 100%);
 }
 
 body.farm-bg .btn-blue {
-  background: linear-gradient(135deg, rgba(21, 101, 192, 0.7) 0%, rgba(74, 158, 255, 0.7) 100%);
+  background: linear-gradient(135deg, rgba(21, 101, 192, 0.5) 0%, rgba(74, 158, 255, 0.5) 100%);
 }
 
 body.farm-bg .btn-gold {
-  background: linear-gradient(135deg, rgba(184, 150, 15, 0.7) 0%, rgba(255, 215, 0, 0.7) 100%);
+  background: linear-gradient(135deg, rgba(184, 150, 15, 0.5) 0%, rgba(255, 215, 0, 0.5) 100%);
 }
 
 body.farm-bg .panel {
-  background: rgba(22, 33, 62, 0.5);
+  background: rgba(22, 33, 62, 0.3);
   backdrop-filter: blur(4px);
+  border-color: rgba(255, 255, 255, 0.06);
 }
 
 body.farm-bg .crop-info-panel {
-  background: rgba(15, 52, 96, 0.5);
+  background: rgba(15, 52, 96, 0.3);
   backdrop-filter: blur(4px);
+  border-color: rgba(255, 255, 255, 0.06);
 }
 
 /* 像素风滚动条 */
@@ -410,20 +414,28 @@ body.farm-bg .crop-info-panel {
   z-index: 5;
 }
 
-.iso-plot {
+/* 格子定位容器（负责位置和尺寸） */
+.iso-plot-wrapper {
   position: absolute;
-  background: rgba(139, 69, 19, 0.35);
-  border: 1px solid rgba(90, 48, 16, 0.6);
+  pointer-events: auto;
+}
+
+/* 格子本体（负责 skew 变换和视觉样式） */
+.iso-plot {
+  width: 100%;
+  height: 100%;
+  background: rgba(139, 69, 19, 0.3);
+  border: 1px solid rgba(90, 48, 16, 0.5);
   border-radius: 3px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  pointer-events: auto;
   transition: all 0.2s ease;
   backdrop-filter: blur(1px);
   transform-origin: center center;
+  transform: skew(-44deg, 0);
   box-sizing: border-box;
 }
 
