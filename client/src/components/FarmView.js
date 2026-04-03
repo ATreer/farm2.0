@@ -208,7 +208,8 @@ export default function FarmView({ playerId, player, notify, refresh, emitPartic
     const tileH = rowHeight * TILE_FILL;
 
     const skewOffsetX = (tileH / 2) * SKEW_TAN;
-    const rowOffsetX = (row + 1) * 0.125 * tileW;
+    // 每行起始 x 向右偏移：第0行+1/4×tileW，第1行+1/2×，第2行+3/4×，第3行+1×
+    const rowOffsetX = (row + 1) * 0.25 * tileW;
 
     return {
       centerX: centerX - skewOffsetX + rowOffsetX,
