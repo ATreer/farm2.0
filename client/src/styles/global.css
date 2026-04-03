@@ -902,6 +902,23 @@ body.farm-bg .crop-info-panel {
   margin-bottom: 14px;
 }
 
+.crop-info-close {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  font-size: 16px;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.crop-info-close:hover {
+  color: var(--accent);
+  background: rgba(233, 69, 96, 0.15);
+}
+
 .crop-info-emoji {
   font-size: 44px;
 }

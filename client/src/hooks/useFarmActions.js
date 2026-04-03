@@ -137,6 +137,10 @@ export default function useFarmActions(playerId, cropsMap, emitParticle, notify,
 
   const selectedCrop = selectedPlot?.crop_id ? cropsMap[selectedPlot.crop_id] : null;
 
+  const clearSelection = useCallback(() => {
+    setSelectedPlot(null);
+  }, []);
+
   return {
     selectedPlot, selectedCrop,
     animatingPlots,
@@ -147,5 +151,6 @@ export default function useFarmActions(playerId, cropsMap, emitParticle, notify,
     handleDragOver, handleDragLeave, handleDrop,
     handleWaterAll, handleHarvestAll,
     getPlotEmoji,
+    clearSelection,
   };
 }

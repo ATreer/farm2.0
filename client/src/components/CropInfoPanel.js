@@ -2,7 +2,7 @@ import React from 'react';
 import { t } from '../services/i18n';
 import assets from '../config/assets';
 
-export default function CropInfoPanel({ selectedCrop, selectedPlot, lang }) {
+export default function CropInfoPanel({ selectedCrop, selectedPlot, lang, onClose }) {
   if (!selectedCrop || !selectedPlot?.crop_id) return null;
 
   return (
@@ -10,12 +10,13 @@ export default function CropInfoPanel({ selectedCrop, selectedPlot, lang }) {
       <div className="crop-info-panel">
         <div className="crop-info-header">
           <span className="crop-info-emoji">{selectedCrop.emoji_ready}</span>
-          <div>
+          <div style={{ flex: 1 }}>
             <div className="crop-info-name">{selectedCrop.name}</div>
             <div style={{ fontSize: '12px', color: 'var(--text-dim)' }}>
               {t('position', lang)} [{selectedPlot.row_idx}, {selectedPlot.col_idx}]
             </div>
           </div>
+          <button className="crop-info-close" onClick={onClose}>✕</button>
         </div>
         <div className="crop-info-stats">
           <div className="crop-stat">
