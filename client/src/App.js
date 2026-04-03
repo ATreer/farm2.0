@@ -73,13 +73,22 @@ function App() {
   }, []);
 
   // 获取粒子效果发射器
-  const emitParticle = useCallback((type, event) => {
-    if (phaserRef.current && event) {
-      const rect = event.currentTarget?.getBoundingClientRect();
-      if (rect) {
-        phaserRef.current.emitEffect(type, rect.left + rect.width / 2, rect.top + rect.height / 2);
-      }
+  // 支持两种调用方式：
+  //   emitParticle(type, event)  — 从 React 事件自动获取坐标
+  //   emitParticle(type, x, y)   — 直接传入屏幕坐标
+  const emitParticle = useCallback((type, eventOrX, y) => {
+    if (!phaserRef.current) return undefined;
+    let x, yy;
+    if (typeof eventOrX === 'number' && typeof y === 'number') {
+      x = eventOrX;
+      yy = y;
+    } else {
+      const rect = eventOrX?.currentTarget?.getBoundingClientRect();
+      if (!rect) return undefined;
+      x = rect.left + rect.width / 2;
+      yy = rect.top + rect.height / 2;
     }
+    return phaserRef.current.emitEffect(type, x, yy);
   }, []);
 
   // 加载玩家数据
