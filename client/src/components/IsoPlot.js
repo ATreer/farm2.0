@@ -59,13 +59,13 @@ export default function IsoPlot({ plot, emoji, isAnimating, onClick, emitParticl
   const renderCropIcon = () => {
     if (!crop_id) return null;
 
-    const imgSrc = getStageImagePath(cropId, growth_stage);
+    const imgSrc = getStageImagePath(crop_id, growth_stage);
 
     return (
       <span className="iso-plot-emoji">
         <img
           src={imgSrc}
-          alt={cropId}
+          alt={crop_id}
           className="iso-plot-img"
           onError={(e) => {
             e.currentTarget.style.display = 'none';
