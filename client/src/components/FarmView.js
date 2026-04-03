@@ -3,20 +3,11 @@ import * as api from '../services/api';
 import { t } from '../services/i18n';
 import assets from '../config/assets';
 import IsoPlot from './IsoPlot';
-
-const MODES = {
-  NONE: 'none',
-  PLANT: 'plant',
-  WATER: 'water',
-  HARVEST: 'harvest',
-  TOOL: 'tool',
-};
+import SeedPanel from './SeedPanel';
 
 const STAGE_EMOJIS = assets.crop.stageDefault;
 
 // ==================== 斜视角农田配置 ====================
-// 荒地 CSS: left:18.44% top:48.2% width:58.12% height:34% skewX(-36deg)
-// 中心点 (47.50, 65.20)，tan(36°) ≈ 0.7265
 const DIRT_AREA = {
   topLeft:     { x: 30.79, y: 48.2 },
   topRight:    { x: 88.91, y: 48.2 },
@@ -27,18 +18,17 @@ const DIRT_AREA = {
 const GRID_ROWS = 4;
 const GRID_COLS = 8;
 const TILE_FILL = 0.85;
-const SKEW_ANGLE = -44; // 度
-const SKEW_TAN = Math.tan(Math.abs(SKEW_ANGLE) * Math.PI / 180); // tan(44°) ≈ 0.9657
+const SKEW_ANGLE = -44;
+const SKEW_TAN = Math.tan(Math.abs(SKEW_ANGLE) * Math.PI / 180);
 
 export default function FarmView({ playerId, player, notify, refresh, emitParticle, lang }) {
   const [plots, setPlots] = useState([]);
   const [cropsMap, setCropsMap] = useState({});
-  const [mode, setMode] = useState(MODES.NONE);
-  const [selectedSeed, setSelectedSeed] = useState(null);
-  const [selectedTool, setSelectedTool] = useState(null);
   const [inventory, setInventory] = useState([]);
   const [selectedPlot, setSelectedPlot] = useState(null);
   const [animatingPlots, setAnimatingPlots] = useState(new Set());
+  const [seedPanelVisible, setSeedPanelVisible] = useState(false);
+  const [dragOverPlot, setDragOverPlot] = useState(null);
 
   const loadData = async () => {
     try {
@@ -62,7 +52,6 @@ export default function FarmView({ playerId, player, notify, refresh, emitPartic
   }, [playerId, refresh]);
 
   const seeds = inventory.filter(i => i.item_type === 'seed');
-  const tools = inventory.filter(i => i.item_type === 'tool');
 
   const triggerPlotAnimation = (plotId) => {
     setAnimatingPlots(prev => new Set([...prev, plotId]));
@@ -75,21 +64,42 @@ export default function FarmView({ playerId, player, notify, refresh, emitPartic
     }, 500);
   };
 
+  // 种植到指定格子
+  const plantToPlot = async (seedId, plot, event) => {
+    if (plot.crop_id) return;
+    try {
+      await api.plantCrop(playerId, plot.row_idx, plot.col_idx, seedId);
+      const cropName = cropsMap[seedId]?.name || seedId;
+      notify(`${assets.notify.plant} ${t('plantSuccess', lang, { name: cropName })}`, 'success');
+      if (event) emitParticle('plant', event);
+      triggerPlotAnimation(plot.id);
+      loadData();
+    } catch (e) {
+      notify(e.message, 'error');
+    }
+  };
+
+  // 点击农田
   const handlePlotClick = async (plot, event) => {
     setSelectedPlot(plot);
 
-    if (mode === MODES.PLANT && selectedSeed) {
+    if (!plot.crop_id) {
+      // 空地 → 弹出种子面板
+      setSeedPanelVisible(true);
+      return;
+    }
+
+    // 已种植的农田 → 浇水或收获
+    if (plot.is_ready) {
       try {
-        await api.plantCrop(playerId, plot.row_idx, plot.col_idx, selectedSeed);
-        const cropName = cropsMap[selectedSeed]?.name || selectedSeed;
-        notify(`${assets.notify.plant} ${t('plantSuccess', lang, { name: cropName })}`, 'success');
-        emitParticle('plant', event);
-        triggerPlotAnimation(plot.id);
+        const result = await api.harvestPlot(playerId, plot.row_idx, plot.col_idx);
+        notify(`${assets.notify.harvest} ${t('harvestSuccess', lang, { name: result.harvested.name, gold: result.harvested.sell_price, exp: result.harvested.exp_reward })}`, 'success');
+        emitParticle('harvest', event);
         loadData();
       } catch (e) {
         notify(e.message, 'error');
       }
-    } else if (mode === MODES.WATER) {
+    } else if (!plot.is_watered) {
       try {
         await api.waterPlot(playerId, plot.row_idx, plot.col_idx);
         notify(`${assets.notify.water} ${t('waterSuccess', lang)}`, 'success');
@@ -99,28 +109,38 @@ export default function FarmView({ playerId, player, notify, refresh, emitPartic
       } catch (e) {
         notify(e.message, 'error');
       }
-    } else if (mode === MODES.HARVEST) {
-      try {
-        const result = await api.harvestPlot(playerId, plot.row_idx, plot.col_idx);
-        notify(`${assets.notify.harvest} ${t('harvestSuccess', lang, { name: result.harvested.name, gold: result.harvested.sell_price, exp: result.harvested.exp_reward })}`, 'success');
-        emitParticle('harvest', event);
-        loadData();
-      } catch (e) {
-        notify(e.message, 'error');
-      }
-    } else if (mode === MODES.TOOL && selectedTool) {
-      try {
-        const result = await api.useTool(playerId, selectedTool, plot.row_idx, plot.col_idx);
-        notify(`${assets.notify.tool} ${t('toolSuccess', lang)}`, 'success');
-        emitParticle('sparkle', event);
-        setPlots(result.plots);
-        setInventory(result.inventory);
-        setMode(MODES.NONE);
-        setSelectedTool(null);
-      } catch (e) {
-        notify(e.message, 'error');
-      }
     }
+  };
+
+  // 从种子面板点击种植（种到当前选中的空地）
+  const handleSeedPanelPlant = (seedId) => {
+    if (selectedPlot && !selectedPlot.crop_id) {
+      plantToPlot(seedId, selectedPlot, null);
+    }
+  };
+
+  // 拖拽相关事件
+  const handlePlotDragOver = (e, plot) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'copy';
+    if (!plot.crop_id) {
+      setDragOverPlot(plot.id);
+    }
+  };
+
+  const handlePlotDragLeave = () => {
+    setDragOverPlot(null);
+  };
+
+  const handlePlotDrop = async (e, plot) => {
+    e.preventDefault();
+    setDragOverPlot(null);
+    if (plot.crop_id) return;
+
+    const seedId = e.dataTransfer.getData('text/plain');
+    if (!seedId) return;
+
+    await plantToPlot(seedId, plot, e);
   };
 
   const handleWaterAll = async () => {
@@ -170,7 +190,6 @@ export default function FarmView({ playerId, player, notify, refresh, emitPartic
     };
   };
 
-  // 计算格子 (row, col) 的中心位置、尺寸和 skew 补偿
   const getPlotGeometry = (row, col) => {
     const topEdge = getRowEdge(row);
     const bottomEdge = getRowEdge(row + 1);
@@ -188,10 +207,7 @@ export default function FarmView({ playerId, player, notify, refresh, emitPartic
     const rowHeight = bottomEdge.y - topEdge.y;
     const tileH = rowHeight * TILE_FILL;
 
-    // skew(-44deg) 补偿：偏移量 = tileH * tan(44°)
     const skewOffsetX = (tileH / 2) * SKEW_TAN;
-
-    // 每行起始 x 向右偏移：第0行+1/8×tileW，第1行+1/4×，第2行+3/8×，第3行+1/2×
     const rowOffsetX = (row + 1) * 0.125 * tileW;
 
     return {
@@ -202,7 +218,6 @@ export default function FarmView({ playerId, player, notify, refresh, emitPartic
     };
   };
 
-  // 生成固定 4×8 网格
   const plotGrid = [];
   for (let r = 0; r < GRID_ROWS; r++) {
     for (let c = 0; c < GRID_COLS; c++) {
@@ -228,11 +243,12 @@ export default function FarmView({ playerId, player, notify, refresh, emitPartic
         <div className="iso-plots-layer">
           {sortedPlots.map(plot => {
             const { centerX, centerY, tileW, tileH } = getPlotGeometry(plot.row, plot.col);
+            const isDragOver = dragOverPlot === plot.id;
 
             return (
               <div
                 key={plot.id}
-                className="iso-plot-wrapper"
+                className={`iso-plot-wrapper ${isDragOver ? 'drag-over' : ''}`}
                 style={{
                   left: `${centerX}%`,
                   top: `${centerY}%`,
@@ -241,6 +257,10 @@ export default function FarmView({ playerId, player, notify, refresh, emitPartic
                   transform: 'translate(-50%, -50%)',
                   zIndex: plot.row * GRID_COLS + plot.col + 1,
                 }}
+                onClick={(e) => handlePlotClick(plot, e)}
+                onDragOver={(e) => handlePlotDragOver(e, plot)}
+                onDragLeave={handlePlotDragLeave}
+                onDrop={(e) => handlePlotDrop(e, plot)}
               >
                 <IsoPlot
                   plot={plot}
@@ -255,6 +275,13 @@ export default function FarmView({ playerId, player, notify, refresh, emitPartic
         </div>
       </div>
 
+      {/* 快捷操作按钮 */}
+      <div className="iso-quick-actions">
+        <button className="btn btn-blue btn-small" onClick={handleWaterAll}>{assets.btn.waterAll} {t('waterAll', lang)}</button>
+        <button className="btn btn-gold btn-small" onClick={handleHarvestAll}>{assets.btn.harvestAll} {t('harvestAll', lang)}</button>
+      </div>
+
+      {/* 右侧信息面板 */}
       <div className="farm-sidebar">
         {selectedCrop && selectedPlot?.crop_id && (
           <div className="crop-info-panel">
@@ -299,6 +326,16 @@ export default function FarmView({ playerId, player, notify, refresh, emitPartic
           </div>
         )}
       </div>
+
+      {/* 种子选择面板 */}
+      <SeedPanel
+        seeds={seeds}
+        cropsMap={cropsMap}
+        visible={seedPanelVisible}
+        onClose={() => setSeedPanelVisible(false)}
+        onPlant={handleSeedPanelPlant}
+        lang={lang}
+      />
     </div>
   );
 }

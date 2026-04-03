@@ -549,6 +549,172 @@ body.farm-bg .crop-info-panel {
   50% { transform: translateY(2px); opacity: 0.7; }
 }
 
+/* ==================== 快捷操作按钮 ==================== */
+.iso-quick-actions {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 10px;
+  z-index: 10;
+}
+
+/* ==================== 拖拽高亮 ==================== */
+.iso-plot-wrapper.drag-over .iso-plot {
+  border-color: var(--gold);
+  background: rgba(255, 215, 0, 0.25);
+  box-shadow: 0 0 16px rgba(255, 215, 0, 0.6);
+}
+
+/* ==================== 种子选择面板 ==================== */
+.seed-panel-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.3);
+  z-index: 100;
+  display: flex;
+  justify-content: flex-end;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.seed-panel {
+  width: 280px;
+  max-width: 90vw;
+  height: 100%;
+  background: rgba(15, 25, 50, 0.92);
+  backdrop-filter: blur(8px);
+  border-left: 2px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  flex-direction: column;
+  animation: slideInRight 0.25s ease;
+  box-shadow: -4px 0 20px rgba(0, 0, 0, 0.4);
+}
+
+@keyframes slideInRight {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+.seed-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  font-family: var(--pixel-font);
+  font-size: 15px;
+  color: var(--text);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.seed-panel-close {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  font-size: 18px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.seed-panel-close:hover {
+  color: var(--accent);
+  background: rgba(233, 69, 96, 0.15);
+}
+
+.seed-panel-hint {
+  padding: 10px 16px;
+  font-size: 11px;
+  color: var(--text-dim);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.seed-panel-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px;
+}
+
+.seed-panel-empty {
+  text-align: center;
+  color: var(--text-dim);
+  padding: 40px 16px;
+  font-size: 13px;
+}
+
+.seed-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  cursor: grab;
+  transition: all 0.2s;
+  border: 1px solid transparent;
+  margin-bottom: 4px;
+}
+
+.seed-item:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.seed-item:active {
+  cursor: grabbing;
+  transform: scale(0.97);
+}
+
+.seed-item.dragging {
+  opacity: 0.5;
+  transform: scale(0.95);
+}
+
+.seed-item-emoji {
+  font-size: 28px;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.seed-item-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.seed-item-name {
+  font-family: var(--pixel-font);
+  font-size: 13px;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.seed-item-detail {
+  font-size: 10px;
+  color: var(--text-dim);
+  margin-top: 2px;
+}
+
+.seed-item-count {
+  font-family: var(--pixel-font);
+  font-size: 12px;
+  color: var(--gold);
+  flex-shrink: 0;
+}
+
 .farm-sidebar {
   width: 320px;
   display: flex;
