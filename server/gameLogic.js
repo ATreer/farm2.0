@@ -550,6 +550,25 @@ function getAllCrops() {
   return db.prepare('SELECT * FROM crops ORDER BY unlock_level, seed_price').all();
 }
 
+// ==================== 测试：手动设置生长阶段 ====================
+
+function setPlotStage(playerId, rowIdx, colIdx, targetStage) {
+  const plot = db.prepare('SELECT * FROM farm_plots WHERE player_id = ? AND row_idx = ? AND col_idx = ?').get(playerId, rowIdx, colIdx);
+  if (!plot || !plot.crop_id) throw new Error('该格子没有作物');
+
+  const crop = db.prepare('SELECT * FROM crops WHERE id = ?').get(plot.crop_id);
+  if (!crop) throw new Error('作物不存在');
+
+  const stage = Math.max(0, Math.min(targetStage, crop.stages - 1));
+  const isReady = stage >= crop.stages - 1;
+
+  db.prepare(`
+    UPDATE farm_plots SET growth_stage = ?, is_ready = ? WHERE id = ?
+  `).run(stage, isReady ? 1 : 0, plot.id);
+
+  return db.prepare('SELECT * FROM farm_plots WHERE id = ?').get(plot.id);
+}
+
 module.exports = {
   createPlayer,
   getPlayer,
@@ -575,5 +594,6 @@ module.exports = {
   useTool,
   getCropInfo,
   getAllCrops,
+  setPlotStage,
   expForLevel,
 };

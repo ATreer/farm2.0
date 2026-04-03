@@ -63,7 +63,7 @@ export default function FarmView({ playerId, player, notify, refresh, emitPartic
       </div>
 
       {/* 作物信息 */}
-      <CropInfoPanel selectedCrop={selectedCrop} selectedPlot={selectedPlot} lang={lang} onClose={clearSelection} />
+      <CropInfoPanel selectedCrop={selectedCrop} selectedPlot={selectedPlot} lang={lang} onClose={clearSelection} playerId={playerId} reload={reload} />
 
       {/* 种子悬浮框 */}
       <SeedPanel

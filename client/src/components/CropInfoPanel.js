@@ -1,9 +1,22 @@
 import React from 'react';
 import { t } from '../services/i18n';
 import assets from '../config/assets';
+import * as api from '../services/api';
 
-export default function CropInfoPanel({ selectedCrop, selectedPlot, lang, onClose }) {
+export default function CropInfoPanel({ selectedCrop, selectedPlot, lang, onClose, playerId, reload }) {
   if (!selectedCrop || !selectedPlot?.crop_id) return null;
+
+  const currentStage = selectedPlot.growth_stage;
+  const maxStage = selectedCrop.stages - 1;
+
+  const handleSetStage = async (targetStage) => {
+    try {
+      await api.setPlotStage(playerId, selectedPlot.row_idx, selectedPlot.col_idx, targetStage);
+      reload();
+    } catch (e) {
+      console.error('setStage error:', e);
+    }
+  };
 
   return (
     <div className="farm-sidebar">
@@ -25,7 +38,7 @@ export default function CropInfoPanel({ selectedCrop, selectedPlot, lang, onClos
           </div>
           <div className="crop-stat">
             <span className="crop-stat-label">{assets.stat.growStage} {t('growStage', lang)}</span>
-            <span className="crop-stat-value">{selectedPlot.growth_stage + 1}/{selectedCrop.stages}</span>
+            <span className="crop-stat-value">{currentStage + 1}/{selectedCrop.stages}</span>
           </div>
           <div className="crop-stat">
             <span className="crop-stat-label">{assets.stat.sellPrice} {t('sellPrice', lang)}</span>
@@ -46,6 +59,17 @@ export default function CropInfoPanel({ selectedCrop, selectedPlot, lang, onClos
         </div>
         <div className="crop-growth-process">
           {selectedCrop.emoji_seed} → {selectedCrop.emoji_sprout} → {selectedCrop.emoji_growing} → {selectedCrop.emoji_ready}
+        </div>
+        {/* 测试按钮：跳到下一阶段 */}
+        <div className="crop-test-actions">
+          <span className="crop-test-label">🧪 {t('testStage', lang)}</span>
+          <button
+            className="btn btn-small btn-primary"
+            disabled={currentStage >= maxStage}
+            onClick={() => handleSetStage(currentStage + 1)}
+          >
+            {currentStage >= maxStage ? t('maxStage', lang) : `${t('nextStage', lang)} (${currentStage + 2}/${selectedCrop.stages})`}
+          </button>
         </div>
       </div>
     </div>

@@ -69,6 +69,9 @@ const zh = {
   readyNo: '生长中',
   position: '位置',
   second: '秒',
+  testStage: '测试阶段',
+  nextStage: '下一阶段',
+  maxStage: '已满级',
 
   // 背包
   inventory: '背包',
@@ -218,6 +221,9 @@ const en = {
   readyNo: 'Growing',
   position: 'Pos',
   second: 'sec',
+  testStage: 'Test Stage',
+  nextStage: 'Next',
+  maxStage: 'Max',
 
   inventory: 'Inventory',
   itemTypes: 'items',

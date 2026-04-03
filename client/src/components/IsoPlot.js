@@ -60,9 +60,11 @@ export default function IsoPlot({ plot, emoji, isAnimating, onClick, emitParticl
     if (!crop_id) return null;
 
     const imgSrc = getStageImagePath(crop_id, growth_stage);
+    // 种子阶段不播放摇晃动画
+    const noSway = growth_stage === 0;
 
     return (
-      <span className="iso-plot-emoji">
+      <span className="iso-plot-emoji" style={noSway ? { animation: 'none' } : {}}>
         <img
           src={imgSrc}
           alt={crop_id}

@@ -226,6 +226,21 @@ app.get('/api/crops/:cropId', (req, res) => {
   }
 });
 
+// ==================== 测试：手动设置生长阶段 ====================
+
+app.post('/api/farm/:playerId/set-stage', (req, res) => {
+  try {
+    const { row_idx, col_idx, stage } = req.body;
+    if (row_idx === undefined || col_idx === undefined || stage === undefined) {
+      return res.status(400).json({ success: false, error: '缺少参数 row_idx, col_idx, stage' });
+    }
+    const plot = game.setPlotStage(req.params.playerId, row_idx, col_idx, stage);
+    res.json({ success: true, data: plot });
+  } catch (err) {
+    res.status(400).json({ success: false, error: err.message });
+  }
+});
+
 // ==================== 自动生长定时器 ====================
 
 setInterval(() => {

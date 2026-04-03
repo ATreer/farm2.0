@@ -47,3 +47,4 @@ export const sleepAdvance = (playerId) => request('POST', `/api/time/sleep/${pla
 // 作物
 export const getAllCrops = () => request('GET', '/api/crops');
 export const getCropInfo = (cropId) => request('GET', `/api/crops/${cropId}`);
+export const setPlotStage = (playerId, row, col, stage) => request('POST', `/api/farm/${playerId}/set-stage`, { row_idx: row, col_idx: col, stage });
