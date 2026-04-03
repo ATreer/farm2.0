@@ -3,7 +3,7 @@ import assets from '../config/assets';
 
 /**
  * 斜视角单块农田组件
- * 每块农田应用 skew(-44deg) 变换，并通过 translate 补偿偏移
+ * 格子本体应用 skew(-44deg)，内部 emoji 反向 skew 恢复直立 + 影子
  */
 export default function IsoPlot({ plot, emoji, isAnimating, onClick, zIndex }) {
   const { is_watered, is_ready, crop_id, growth_stage, row_idx, col_idx } = plot;
