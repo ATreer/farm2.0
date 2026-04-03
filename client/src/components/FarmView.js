@@ -15,19 +15,20 @@ const MODES = {
 const STAGE_EMOJIS = assets.crop.stageDefault;
 
 // ==================== 斜视角农田配置 ====================
-// 荒地平行四边形四角坐标（百分比，相对于视口）
+// 荒地 CSS: left:18.44% top:48.2% width:58.12% height:34% skewX(-36deg)
+// 中心点 (47.50, 65.20)，tan(36°) ≈ 0.7265
 const DIRT_AREA = {
-  topLeft:     { x: 29.0,  y: 48.2 },
-  topRight:    { x: 91.0,  y: 48.2 },
-  bottomLeft:  { x: 3.0,   y: 82.2 },
-  bottomRight: { x: 65.0,  y: 82.2 },
+  topLeft:     { x: 30.79, y: 48.2 },
+  topRight:    { x: 88.91, y: 48.2 },
+  bottomLeft:  { x: 6.09,  y: 82.2 },
+  bottomRight: { x: 64.21, y: 82.2 },
 };
 
 const GRID_ROWS = 4;
 const GRID_COLS = 8;
 const TILE_FILL = 0.85;
-const SKEW_ANGLE = -44; // 度
-const SKEW_TAN = Math.tan(Math.abs(SKEW_ANGLE) * Math.PI / 180); // tan(44°) ≈ 0.9657
+const SKEW_ANGLE = -36; // 度（从-44°减小到-36°）
+const SKEW_TAN = Math.tan(Math.abs(SKEW_ANGLE) * Math.PI / 180); // tan(36°) ≈ 0.7265
 
 export default function FarmView({ playerId, player, notify, refresh, emitParticle, lang }) {
   const [plots, setPlots] = useState([]);
