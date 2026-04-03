@@ -484,6 +484,12 @@ body.farm-bg .crop-info-panel {
   transform: skew(44deg, 0);
 }
 
+.iso-plot-img {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+}
+
 .iso-plot-empty {
   font-size: 14px;
   color: rgba(90, 48, 16, 0.4);

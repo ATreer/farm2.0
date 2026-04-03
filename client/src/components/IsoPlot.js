@@ -23,7 +23,13 @@ export default function IsoPlot({ plot, emoji, isAnimating, onClick, zIndex }) {
     >
       {crop_id ? (
         <>
-          <span className="iso-plot-emoji">{emoji}</span>
+          <span className="iso-plot-emoji">
+            {growth_stage === 1 ? (
+              <img src="/seedling.png" alt="seedling" className="iso-plot-img" />
+            ) : (
+              emoji
+            )}
+          </span>
           {is_watered && <span className="iso-plot-water">{assets.plot.waterIndicator}</span>}
           {!is_ready && <span className="iso-plot-stage">{growth_stage + 1}/4</span>}
         </>
