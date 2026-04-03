@@ -26,11 +26,14 @@ const DIRT_AREA = {
   bottomRight: { x: 62.08, y: 82.2 },
 };
 
+// 固定网格尺寸（不跟随等级，均匀铺满荒地）
+const GRID_ROWS = 4;
+const GRID_COLS = 8;
+
 // 斜视角参数
 const ISO_CONFIG = {
-  tileWidth: 80,
-  tileHeight: 48,
-  perspectiveScale: 0.75,
+  perspectiveScale: 0.7,   // 远处行缩放比例
+  tilePadding: 0.7,        // 格子占单元格的比例（留间隙）
 };
 
 export default function FarmView({ playerId, player, notify, refresh, emitParticle, lang }) {
@@ -43,7 +46,6 @@ export default function FarmView({ playerId, player, notify, refresh, emitPartic
   const [selectedPlot, setSelectedPlot] = useState(null);
   const [animatingPlots, setAnimatingPlots] = useState(new Set());
   const farmRef = useRef(null);
-  const [bgSize, setBgSize] = useState({ width: 1200, height: 675 });
 
   const MODE_LABELS = {
     none: `${assets.mode.view} ${t('modeView', lang)}`,
@@ -73,19 +75,6 @@ export default function FarmView({ playerId, player, notify, refresh, emitPartic
   useEffect(() => {
     loadData();
   }, [playerId, refresh]);
-
-  // 监听容器尺寸变化
-  useEffect(() => {
-    const updateSize = () => {
-      if (farmRef.current) {
-        const rect = farmRef.current.getBoundingClientRect();
-        setBgSize({ width: rect.width, height: rect.width * 0.5625 }); // 16:9
-      }
-    };
-    updateSize();
-    window.addEventListener('resize', updateSize);
-    return () => window.removeEventListener('resize', updateSize);
-  }, []);
 
   const seeds = inventory.filter(i => i.item_type === 'seed');
   const tools = inventory.filter(i => i.item_type === 'tool');
@@ -182,9 +171,6 @@ export default function FarmView({ playerId, player, notify, refresh, emitPartic
     return STAGE_EMOJIS[plot.growth_stage] || assets.mode.plant;
   };
 
-  const maxRow = plots.length > 0 ? Math.max(...plots.map(p => p.row_idx)) + 1 : 3;
-  const maxCol = plots.length > 0 ? Math.max(...plots.map(p => p.col_idx)) + 1 : 3;
-
   const selectedCrop = selectedPlot?.crop_id ? cropsMap[selectedPlot.crop_id] : null;
 
   const modeButtons = [
@@ -195,51 +181,73 @@ export default function FarmView({ playerId, player, notify, refresh, emitPartic
   ];
 
   // ==================== 斜视角位置计算 ====================
-  // 将 (row, col) 转换为背景图上的像素位置（百分比）
+  // 建立 row_idx,col_idx → plot 数据的映射
+  const plotMap = {};
+  plots.forEach(p => { plotMap[`${p.row_idx}-${p.col_idx}`] = p; });
+
+  // 将 (row, col) 转换为背景图上的位置（百分比）
   const getPlotPosition = (row, col) => {
     const { topLeft, topRight, bottomLeft, bottomRight } = DIRT_AREA;
-    const totalRows = maxRow;
-    const totalCols = maxCol;
+    // 在 N×M 网格中，每个格子中心位于 (col+0.5)/M, (row+0.5)/N
+    const rowT = (row + 0.5) / GRID_ROWS;
+    const colT = (col + 0.5) / GRID_COLS;
 
-    // 行进度 (0=最近/底部, 1=最远/顶部)
-    const rowT = totalRows > 1 ? row / (totalRows - 1) : 0.5;
-    // 列进度 (0=左, 1=右)
-    const colT = totalCols > 1 ? col / (totalCols - 1) : 0.5;
-
-    // 双线性插值计算该行列在梯形中的位置
+    // 双线性插值
     const leftX = bottomLeft.x + (topLeft.x - bottomLeft.x) * rowT;
     const rightX = bottomRight.x + (topRight.x - bottomRight.x) * rowT;
     const leftY = bottomLeft.y + (topLeft.y - bottomLeft.y) * rowT;
     const rightY = bottomRight.y + (topRight.y - bottomRight.y) * rowT;
 
-    const x = leftX + (rightX - leftX) * colT;
-    const y = leftY + (rightY - leftY) * colT;
-
-    return { x, y };
+    return {
+      x: leftX + (rightX - leftX) * colT,
+      y: leftY + (rightY - leftY) * colT,
+    };
   };
 
-  // 计算格子大小（透视缩放：近大远小）
-  const getPlotScale = (row) => {
-    const totalRows = maxRow;
-    const rowT = totalRows > 1 ? row / (totalRows - 1) : 0.5;
-    // rowT=0 是最近行（底部），rowT=1 是最远行（顶部）
-    return 1.0 - rowT * (1.0 - ISO_CONFIG.perspectiveScale);
+  // 计算该行格子的大小（百分比，近大远小）
+  const getPlotSize = (row) => {
+    const { topLeft, topRight, bottomLeft, bottomRight } = DIRT_AREA;
+    const rowT = (row + 0.5) / GRID_ROWS;
+    const scale = 1.0 - rowT * (1.0 - ISO_CONFIG.perspectiveScale);
+
+    // 该行左右边界
+    const leftX = bottomLeft.x + (topLeft.x - bottomLeft.x) * rowT;
+    const rightX = bottomRight.x + (topRight.x - bottomRight.x) * rowT;
+    const leftY = bottomLeft.y + (topLeft.y - bottomLeft.y) * rowT;
+    const rightY = bottomRight.y + (topRight.y - bottomRight.y) * rowT;
+
+    // 该行宽度（左右中点距离 × 2）
+    const rowWidth = Math.abs(rightX - leftX);
+    // 该行高度（上下边界间距 / 总行数）
+    const rowHeight = Math.abs(rightY - leftY) / GRID_ROWS * 2;
+
+    const pad = ISO_CONFIG.tilePadding;
+    return {
+      width: (rowWidth / GRID_COLS) * pad,
+      height: (rowHeight) * pad,
+      scale,
+    };
   };
 
-  // 将 plots 转为二维数组方便渲染
+  // 生成固定 4×8 网格
   const plotGrid = [];
-  for (let r = 0; r < maxRow; r++) {
-    for (let c = 0; c < maxCol; c++) {
-      const plot = plots.find(p => p.row_idx === r && p.col_idx === c);
-      if (plot) {
-        plotGrid.push({ ...plot, row: r, col: c });
+  for (let r = 0; r < GRID_ROWS; r++) {
+    for (let c = 0; c < GRID_COLS; c++) {
+      const dbPlot = plotMap[`${r}-${c}`];
+      if (dbPlot) {
+        plotGrid.push({ ...dbPlot, row: r, col: c });
       } else {
-        plotGrid.push({ id: `empty-${r}-${c}`, row_idx: r, col_idx: c, row: r, col: c, crop_id: null, is_watered: false, is_ready: false, growth_stage: 0 });
+        plotGrid.push({
+          id: `empty-${r}-${c}`,
+          row_idx: r, col_idx: c,
+          row: r, col: c,
+          crop_id: null, is_watered: false, is_ready: false, growth_stage: 0,
+        });
       }
     }
   }
 
-  // 按行排序（先渲染远处的行，再渲染近处的行，实现遮挡效果）
+  // 按行排序（远处先渲染）
   const sortedPlots = [...plotGrid].sort((a, b) => a.row - b.row || a.col - b.col);
 
   return (
@@ -247,7 +255,7 @@ export default function FarmView({ playerId, player, notify, refresh, emitPartic
       <div className="farm-grid-wrapper iso-farm-wrapper">
         {/* 工具栏面板 */}
         <div className="panel iso-toolbar-panel">
-          <div className="panel-title">{assets.panel.farm} {t('myFarm', lang)} ({maxRow}×{maxCol})</div>
+          <div className="panel-title">{assets.panel.farm} {t('myFarm', lang)} ({GRID_ROWS}×{GRID_COLS})</div>
 
           <div className="farm-actions">
             {modeButtons.map(btn => (
@@ -314,19 +322,13 @@ export default function FarmView({ playerId, player, notify, refresh, emitPartic
         <div className="iso-scene" ref={farmRef}>
           <div
             className="iso-background"
-            style={{
-              backgroundImage: `url(/background.png)`,
-              width: bgSize.width,
-              height: bgSize.height,
-            }}
+            style={{ backgroundImage: 'url(/background.png)' }}
           >
             {/* 斜视角农田格子层 */}
             <div className="iso-plots-layer">
               {sortedPlots.map(plot => {
                 const pos = getPlotPosition(plot.row, plot.col);
-                const scale = getPlotScale(plot.row);
-                const tileW = ISO_CONFIG.tileWidth * scale;
-                const tileH = ISO_CONFIG.tileHeight * scale;
+                const { width, height, scale } = getPlotSize(plot.row);
 
                 return (
                   <div
@@ -335,10 +337,10 @@ export default function FarmView({ playerId, player, notify, refresh, emitPartic
                     style={{
                       left: `${pos.x}%`,
                       top: `${pos.y}%`,
-                      width: tileW,
-                      height: tileH,
-                      transform: `translate(-50%, -50%) scale(${scale})`,
-                      zIndex: plot.row * maxCol + plot.col + 1,
+                      width: `${width}%`,
+                      height: `${height}%`,
+                      transform: `translate(-50%, -50%)`,
+                      zIndex: plot.row * GRID_COLS + plot.col + 1,
                     }}
                     onClick={(e) => handlePlotClick(plot, e)}
                     title={`[${plot.row_idx}, ${plot.col_idx}] ${plot.crop_id || t('empty', lang)}`}
