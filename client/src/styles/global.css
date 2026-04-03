@@ -54,10 +54,52 @@ body {
 
 /* 全局背景图（农田页面生效，通过 JS 动态设置） */
 body.farm-bg {
-  background-size: cover;
+  background-size: 100% 100%;
   background-position: center;
   background-repeat: no-repeat;
   background-attachment: fixed;
+}
+
+/* 农田页面 UI 半透明 */
+body.farm-bg .top-bar {
+  background: rgba(22, 33, 62, 0.6);
+  backdrop-filter: blur(4px);
+}
+
+body.farm-bg .nav-tab {
+  background: rgba(22, 33, 62, 0.5);
+  backdrop-filter: blur(4px);
+}
+
+body.farm-bg .nav-tab.active {
+  background: linear-gradient(135deg, rgba(233, 69, 96, 0.85) 0%, rgba(199, 53, 80, 0.85) 100%);
+}
+
+body.farm-bg .btn {
+  background: rgba(15, 52, 96, 0.5);
+  backdrop-filter: blur(3px);
+}
+
+body.farm-bg .btn-green {
+  background: linear-gradient(135deg, rgba(45, 138, 110, 0.7) 0%, rgba(78, 204, 163, 0.7) 100%);
+}
+
+body.farm-bg .btn-blue {
+  background: linear-gradient(135deg, rgba(21, 101, 192, 0.7) 0%, rgba(74, 158, 255, 0.7) 100%);
+}
+
+body.farm-bg .btn-gold {
+  background: linear-gradient(135deg, rgba(184, 150, 15, 0.7) 0%, rgba(255, 215, 0, 0.7) 100%);
+}
+
+body.farm-bg .panel {
+  background: rgba(22, 33, 62, 0.5);
+  backdrop-filter: blur(4px);
+}
+
+body.farm-bg .crop-info-panel {
+  background: rgba(15, 52, 96, 0.5);
+  backdrop-filter: blur(4px);
 }
 
 /* 像素风滚动条 */

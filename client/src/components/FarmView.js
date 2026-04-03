@@ -16,11 +16,12 @@ const STAGE_EMOJIS = assets.crop.stageDefault;
 
 // ==================== 斜视角农田配置 ====================
 // 荒地平行四边形四角坐标（百分比，相对于视口）
+// 基于 CSS: left:16.5% top:48.2% width:62% height:34% skewX(-44deg)
 const DIRT_AREA = {
-  topLeft:     { x: 32.92, y: 48.2 },
-  topRight:    { x: 94.92, y: 48.2 },
-  bottomLeft:  { x: 0.08,  y: 82.2 },
-  bottomRight: { x: 62.08, y: 82.2 },
+  topLeft:     { x: 29.0,  y: 48.2 },   // 左移约4%（半个格子宽度）
+  topRight:    { x: 91.0,  y: 48.2 },
+  bottomLeft:  { x: 3.0,   y: 82.2 },   // 右移约3%
+  bottomRight: { x: 65.0,  y: 82.2 },   // 右移约3%
 };
 
 // 固定网格尺寸
@@ -241,71 +242,6 @@ export default function FarmView({ playerId, player, notify, refresh, emitPartic
   return (
     <div className="farm-container iso-farm-container">
       <div className="farm-grid-wrapper iso-farm-wrapper">
-        {/* 工具栏面板 */}
-        <div className="panel iso-toolbar-panel">
-          <div className="panel-title">{assets.panel.farm} {t('myFarm', lang)} ({GRID_ROWS}×{GRID_COLS})</div>
-
-          <div className="farm-actions">
-            {modeButtons.map(btn => (
-              <button
-                key={btn.key}
-                className={`btn ${btn.color} ${mode === btn.key ? 'active' : ''}`}
-                onClick={() => {
-                  setMode(mode === btn.key ? MODES.NONE : btn.key);
-                  setSelectedSeed(null);
-                  setSelectedTool(null);
-                }}
-              >
-                {btn.label}
-              </button>
-            ))}
-            <button className="btn btn-blue btn-small" onClick={handleWaterAll}>{assets.btn.waterAll} {t('waterAll', lang)}</button>
-            <button className="btn btn-gold btn-small" onClick={handleHarvestAll}>{assets.btn.harvestAll} {t('harvestAll', lang)}</button>
-
-            {mode !== MODES.NONE && (
-              <span className="farm-mode-indicator">{MODE_LABELS[mode]}</span>
-            )}
-          </div>
-
-          {mode === MODES.PLANT && (
-            <div className="selection-bar">
-              <span className="selection-bar-label">{t('selectSeed', lang)}</span>
-              {seeds.length === 0 ? (
-                <span className="selection-bar-empty">{t('noSeeds', lang)}</span>
-              ) : (
-                seeds.map(seed => (
-                  <button
-                    key={seed.item_id}
-                    className={`btn btn-small ${selectedSeed === seed.item_id ? 'btn-gold' : ''}`}
-                    onClick={() => setSelectedSeed(seed.item_id)}
-                  >
-                    {seed.emoji} {seed.name} ×{seed.quantity}
-                  </button>
-                ))
-              )}
-            </div>
-          )}
-
-          {mode === MODES.TOOL && (
-            <div className="selection-bar">
-              <span className="selection-bar-label">{t('selectTool', lang)}</span>
-              {tools.length === 0 ? (
-                <span className="selection-bar-empty">{t('noTools', lang)}</span>
-              ) : (
-                tools.map(tool => (
-                  <button
-                    key={tool.item_id}
-                    className={`btn btn-small ${selectedTool === tool.item_id ? 'btn-gold' : ''}`}
-                    onClick={() => setSelectedTool(tool.item_id)}
-                  >
-                    {tool.emoji} {tool.name} ×{tool.quantity}
-                  </button>
-                ))
-              )}
-            </div>
-          )}
-        </div>
-
         {/* 斜视角农田格子层（直接铺在 body 背景上） */}
         <div className="iso-plots-layer">
           {sortedPlots.map(plot => {

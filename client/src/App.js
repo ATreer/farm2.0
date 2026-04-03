@@ -32,13 +32,16 @@ function App() {
     if (currentPage === PAGES.farm) {
       document.body.classList.add('farm-bg');
       document.body.style.backgroundImage = 'url(/background.png)';
+      document.body.style.backgroundSize = '100% 100%';
     } else {
       document.body.classList.remove('farm-bg');
       document.body.style.backgroundImage = '';
+      document.body.style.backgroundSize = '';
     }
     return () => {
       document.body.classList.remove('farm-bg');
       document.body.style.backgroundImage = '';
+      document.body.style.backgroundSize = '';
     };
   }, [currentPage]);
 
