@@ -476,8 +476,8 @@ body.farm-bg .crop-info-panel {
 }
 
 .iso-plot-img {
-  width: 36px;
-  height: 36px;
+  width: 108px;
+  height: 108px;
   object-fit: contain;
   display: block;
 }
