@@ -48,6 +48,9 @@ db.exec(`
     exp_reward INTEGER NOT NULL,
     unlock_level INTEGER DEFAULT 1,
     stages INTEGER DEFAULT 4,
+    rarity INTEGER DEFAULT 1,
+    season TEXT DEFAULT 'spring',
+    description TEXT DEFAULT '',
     emoji_seed TEXT,
     emoji_sprout TEXT,
     emoji_growing TEXT,
@@ -99,11 +102,16 @@ db.exec(`
 
 // ==================== 初始化种子数据 ====================
 
+// 迁移：为已有 crops 表添加新字段
+try { db.exec(`ALTER TABLE crops ADD COLUMN rarity INTEGER DEFAULT 1`); } catch(e) {}
+try { db.exec(`ALTER TABLE crops ADD COLUMN season TEXT DEFAULT 'spring'`); } catch(e) {}
+try { db.exec(`ALTER TABLE crops ADD COLUMN description TEXT DEFAULT ''`); } catch(e) {}
+
 const initCrops = db.prepare('SELECT COUNT(*) as cnt FROM crops').get();
 if (initCrops.cnt === 0) {
   const insertCrop = db.prepare(`
-    INSERT INTO crops (id, name, grow_time, seed_price, sell_price, exp_reward, unlock_level, stages, emoji_seed, emoji_sprout, emoji_growing, emoji_ready)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO crops (id, name, grow_time, seed_price, sell_price, exp_reward, unlock_level, stages, rarity, season, description, emoji_seed, emoji_sprout, emoji_growing, emoji_ready)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
 
   const crops = config.crops;

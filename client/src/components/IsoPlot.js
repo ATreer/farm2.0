@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import assets from '../config/assets';
 
 /**
@@ -16,10 +16,19 @@ function hashStr(str) {
   return (Math.abs(hash) % 100) / 100;
 }
 
+// 阶段图片路径映射
+function getStageImagePath(cropId, growthStage) {
+  if (growthStage === 0) return '/init_seed.png';
+  if (growthStage === 1) return '/seedling.png';
+  // 阶段2+：/成长阶段/作物名.png
+  return `/成长阶段/${cropId}.png`;
+}
+
 export default function IsoPlot({ plot, emoji, isAnimating, onClick, emitParticle, zIndex }) {
   const { is_watered, is_ready, crop_id, growth_stage, row_idx, col_idx } = plot;
   const plotRef = useRef(null);
   const readyKeyRef = useRef(null);
+  const [imgError, setImgError] = useState(false);
 
   // 干旱逻辑：已种植、未浇水、未成熟，且伪随机概率 40% 触发
   const isDry = crop_id && !is_watered && !is_ready && hashStr(plot.id) < 0.4;
@@ -33,22 +42,43 @@ export default function IsoPlot({ plot, emoji, isAnimating, onClick, emitParticl
     const cx = rect.left + rect.width / 2;
     const cy = rect.top + rect.height * 0.4;
 
-    // 首次发射
     readyKeyRef.current = emitParticle('ready', cx, cy);
 
-    // 持续发射（每3秒刷新一次位置，适应滚动/缩放）
     const interval = setInterval(() => {
       if (!plotRef.current) return;
       const r = plotRef.current.getBoundingClientRect();
-      const x = r.left + r.width / 2;
-      const y = r.top + r.height * 0.4;
-      emitParticle('ready', x, y);
+      emitParticle('ready', r.left + r.width / 2, r.top + r.height * 0.4);
     }, 3000);
 
-    return () => {
-      clearInterval(interval);
-    };
+    return () => clearInterval(interval);
   }, [is_ready, emitParticle]);
+
+  // 渲染作物图标：优先用阶段图片，失败则回退 emoji
+  const renderCropIcon = () => {
+    if (!crop_id) return null;
+
+    const imgSrc = getStageImagePath(cropId, growth_stage);
+
+    return (
+      <span className="iso-plot-emoji">
+        <img
+          src={imgSrc}
+          alt={cropId}
+          className="iso-plot-img"
+          onError={(e) => {
+            e.currentTarget.style.display = 'none';
+            setImgError(true);
+          }}
+          onLoad={(e) => {
+            e.currentTarget.style.display = '';
+            setImgError(false);
+          }}
+        />
+        {/* 图片加载失败时回退 emoji */}
+        {imgError && <span className="iso-plot-emoji-fallback">{emoji}</span>}
+      </span>
+    );
+  };
 
   return (
     <div
@@ -63,14 +93,8 @@ export default function IsoPlot({ plot, emoji, isAnimating, onClick, emitParticl
     >
       {crop_id ? (
         <>
-          <span className="iso-plot-emoji">
-            {growth_stage === 1 ? (
-              <img src="/seedling.png" alt="seedling" className="iso-plot-img" />
-            ) : (
-              emoji
-            )}
-          </span>
-          {!is_ready && <span className="iso-plot-stage">{growth_stage + 1}/4</span>}
+          {renderCropIcon()}
+          {!is_ready && <span className="iso-plot-stage">{growth_stage + 1}/{plot.stages || 4}</span>}
         </>
       ) : (
         <span className="iso-plot-empty">{assets.crop.emptyPlot}</span>

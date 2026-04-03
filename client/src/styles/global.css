@@ -470,8 +470,8 @@ body.farm-bg .crop-info-panel {
   /* 反向 skew 恢复直立 */
   transform: skew(44deg, 0);
   transform-origin: bottom center;
-  /* 图片底部对齐，整体下移到中间偏下 */
-  align-self: flex-end;
+  /* 水平居中，底部对齐到中间偏下 */
+  align-self: center;
   margin-bottom: 15%;
 }
 
@@ -479,6 +479,12 @@ body.farm-bg .crop-info-panel {
   width: 36px;
   height: 36px;
   object-fit: contain;
+  display: block;
+}
+
+.iso-plot-emoji-fallback {
+  font-size: 24px;
+  line-height: 1;
 }
 
 /* 游戏风格摇摆动画（以底部为轴心左右摆动） */
