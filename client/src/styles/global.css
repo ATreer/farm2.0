@@ -472,18 +472,26 @@ body.farm-bg .crop-info-panel {
 .iso-plot-emoji {
   font-size: 24px;
   line-height: 1;
-  animation: plantBob 2s ease-in-out infinite;
+  animation: plantSway 3s ease-in-out infinite;
   filter: drop-shadow(1px 3px 2px rgba(0, 0, 0, 0.5));
   position: relative;
   z-index: 1;
   /* 反向 skew 恢复直立 */
   transform: skew(44deg, 0);
+  transform-origin: bottom center;
 }
 
 .iso-plot-img {
-  width: 28px;
-  height: 28px;
+  width: 36px;
+  height: 36px;
   object-fit: contain;
+}
+
+/* 游戏风格摇摆动画（以底部为轴心左右摆动） */
+@keyframes plantSway {
+  0%, 100% { transform: skew(44deg, 0) rotate(0deg); }
+  25% { transform: skew(44deg, 0) rotate(3deg); }
+  75% { transform: skew(44deg, 0) rotate(-3deg); }
 }
 
 .iso-plot-empty {
@@ -508,15 +516,7 @@ body.farm-bg .crop-info-panel {
   transform: skew(44deg, 0);
 }
 
-@keyframes plantBob {
-  0%, 100% { transform: skew(44deg, 0) translateY(0); }
-  50% { transform: skew(44deg, 0) translateY(-3px); }
-}
 
-@keyframes plantBob {
-  0%, 100% { transform: skew(44deg, 0) translateY(0); }
-  50% { transform: skew(44deg, 0) translateY(-3px); }
-}
 
 /* ==================== 快捷操作按钮 ==================== */
 .iso-quick-actions {
