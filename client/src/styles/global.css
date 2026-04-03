@@ -444,13 +444,9 @@ body.farm-bg .crop-info-panel {
   z-index: 999 !important;
 }
 
-/* 未浇水：变白发干 */
+/* 未浇水：轻微发白 */
 .iso-plot.dry {
-  filter: brightness(1.4) saturate(0.3);
-}
-
-.iso-plot.watered {
-  filter: brightness(0.9) saturate(1.2);
+  filter: brightness(1.1) saturate(0.8);
 }
 
 .iso-plot.ready {
@@ -497,17 +493,6 @@ body.farm-bg .crop-info-panel {
   z-index: 1;
 }
 
-.iso-plot-water {
-  position: absolute;
-  top: 1px;
-  right: 2px;
-  font-size: 10px;
-  animation: waterDrip 1.5s ease-in-out infinite;
-  z-index: 2;
-  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
-  transform: skew(44deg, 0);
-}
-
 .iso-plot-stage {
   font-family: var(--pixel-font);
   font-size: 7px;
@@ -528,9 +513,9 @@ body.farm-bg .crop-info-panel {
   50% { transform: skew(44deg, 0) translateY(-3px); }
 }
 
-@keyframes waterDrip {
-  0%, 100% { transform: skew(44deg, 0) translateY(0); opacity: 1; }
-  50% { transform: skew(44deg, 0) translateY(2px); opacity: 0.7; }
+@keyframes plantBob {
+  0%, 100% { transform: skew(44deg, 0) translateY(0); }
+  50% { transform: skew(44deg, 0) translateY(-3px); }
 }
 
 /* ==================== 快捷操作按钮 ==================== */
