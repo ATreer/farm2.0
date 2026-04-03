@@ -21,6 +21,8 @@ const STAGE_DIRS = ['seed', 'seedling', 'large-leaved', 'bloom', 'mature'];
 
 function getStageImagePath(cropId, growthStage) {
   const dir = STAGE_DIRS[Math.min(growthStage, STAGE_DIRS.length - 1)];
+  // seed阶段所有作物共用一张图片
+  if (growthStage === 0) return '/seed/init_seed.png';
   return `/${dir}/${cropId}.png`;
 }
 
