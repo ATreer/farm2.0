@@ -15,27 +15,22 @@ const MODES = {
 const STAGE_EMOJIS = assets.crop.stageDefault;
 
 // ==================== 斜视角农田配置 ====================
-// 背景图中荒地的位置（百分比，相对于背景图尺寸）
+// 荒地 CSS 参数: left:16.5% top:48.2% width:62% height:34% skewX(-44deg)
+// transform-origin: center → 中心点 (47.5%, 65.2%)
+// skewX(-44deg): x' = x + (y - 65.2) × (-tan44°)
+// 平行四边形四角坐标（百分比，相对于背景图尺寸）
 const DIRT_AREA = {
-  // 荒地四角位置（百分比）
-  topLeft:     { x: 9.4,  y: 38.9 },
-  topRight:    { x: 89.6, y: 38.9 },
-  bottomLeft:  { x: 1.0,  y: 81.5 },
-  bottomRight: { x: 98.0, y: 81.5 },
+  topLeft:     { x: 32.92, y: 48.2 },
+  topRight:    { x: 94.92, y: 48.2 },
+  bottomLeft:  { x: 0.08,  y: 82.2 },
+  bottomRight: { x: 62.08, y: 82.2 },
 };
 
 // 斜视角参数
 const ISO_CONFIG = {
-  // 格子在斜视角中的宽度（近大远小，这里取中间值）
-  tileWidth: 72,
-  // 格子在斜视角中的高度（压缩，模拟透视）
-  tileHeight: 42,
-  // 行间距（越远的行间距越小）
-  rowGap: 6,
-  // 列间距
-  colGap: 4,
-  // 透视缩放（最远行 vs 最近行）
-  perspectiveScale: 0.65,
+  tileWidth: 80,
+  tileHeight: 48,
+  perspectiveScale: 0.75,
 };
 
 export default function FarmView({ playerId, player, notify, refresh, emitParticle, lang }) {
