@@ -4,6 +4,28 @@ echo "🌾 启动像素农场..."
 echo "================================"
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+DB_FILE="$SCRIPT_DIR/server/farm.db"
+
+# ==================== 参数解析 ====================
+RESET_DB=0
+for arg in "$@"; do
+  case "$arg" in
+    --reset-db|-r) RESET_DB=1 ;;
+  esac
+done
+
+# ==================== 数据库重置 ====================
+if [ "$RESET_DB" = "1" ]; then
+  echo ""
+  echo "🗑️  [DB] 重置数据库..."
+  if [ -f "$DB_FILE" ]; then
+    rm -f "$DB_FILE"
+    echo "   ✅ 已删除 $DB_FILE"
+  else
+    echo "   ℹ️  数据库文件不存在，跳过"
+  fi
+  echo "   💡 下次启动后端时会自动重新初始化"
+fi
 
 # ==================== [0/4] 拉取最新代码 ====================
 echo ""
@@ -194,6 +216,7 @@ echo "💡 提示："
 echo "   - 查看后端日志: tail -f $SERVER_LOG"
 echo "   - 修改代码后重新运行此脚本即可自动重编译"
 echo "   - 停止服务: 按 Ctrl+C"
+echo "   - 重置数据库: ./start.sh --reset-db"
 echo "================================"
 
 cleanup() {

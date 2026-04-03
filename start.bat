@@ -11,6 +11,30 @@ echo.
 set "SCRIPT_DIR=%~dp0"
 cd /d "%SCRIPT_DIR%"
 
+:: ==================== 参数解析 ====================
+set "RESET_DB=0"
+:parse_args
+if "%~1"=="" goto :args_done
+if /i "%~1"=="--reset-db" set "RESET_DB=1"
+if /i "%~1"=="-r" set "RESET_DB=1"
+shift
+goto :parse_args
+:args_done
+
+:: ==================== 数据库重置 ====================
+if "!RESET_DB!"=="1" (
+    echo.
+    echo [DB] 🗑️  重置数据库...
+    if exist "%SCRIPT_DIR%server\farm.db" (
+        del /f "%SCRIPT_DIR%server\farm.db" 2>nul
+        echo      ✅ 已删除 farm.db
+    ) else (
+        echo      ℹ️  数据库文件不存在，跳过
+    )
+    echo      💡 下次启动后端时会自动重新初始化
+    echo.
+)
+
 :: 如果没有 git 仓库，跳过拉取
 set "HAS_GIT=0"
 if exist ".git" set "HAS_GIT=1"
