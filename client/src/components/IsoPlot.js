@@ -16,12 +16,12 @@ function hashStr(str) {
   return (Math.abs(hash) % 100) / 100;
 }
 
-// 阶段图片路径映射
+// 阶段图片路径映射：seed → seedling → large-leaved → bloom → mature
+const STAGE_DIRS = ['seed', 'seedling', 'large-leaved', 'bloom', 'mature'];
+
 function getStageImagePath(cropId, growthStage) {
-  if (growthStage === 0) return '/init_seed.png';
-  if (growthStage === 1) return '/seedling.png';
-  // 阶段2+：/成长阶段/作物名.png
-  return `/成长阶段/${cropId}.png`;
+  const dir = STAGE_DIRS[Math.min(growthStage, STAGE_DIRS.length - 1)];
+  return `/${dir}/${cropId}.png`;
 }
 
 export default function IsoPlot({ plot, emoji, isAnimating, onClick, emitParticle, zIndex }) {
