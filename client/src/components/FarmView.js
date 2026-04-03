@@ -32,8 +32,8 @@ const GRID_COLS = 8;
 
 // 斜视角参数
 const ISO_CONFIG = {
-  perspectiveScale: 0.7,   // 远处行缩放比例
-  tilePadding: 0.7,        // 格子占单元格的比例（留间隙）
+  perspectiveScale: 0.6,   // 远处行缩放比例（越小远处的行越窄，斜视角感越强）
+  tilePadding: 0.72,       // 格子占单元格的比例（留间隙）
 };
 
 export default function FarmView({ playerId, player, notify, refresh, emitParticle, lang }) {
@@ -213,18 +213,18 @@ export default function FarmView({ playerId, player, notify, refresh, emitPartic
     // 该行左右边界
     const leftX = bottomLeft.x + (topLeft.x - bottomLeft.x) * rowT;
     const rightX = bottomRight.x + (topRight.x - bottomRight.x) * rowT;
-    const leftY = bottomLeft.y + (topLeft.y - bottomLeft.y) * rowT;
-    const rightY = bottomRight.y + (topRight.y - bottomRight.y) * rowT;
 
-    // 该行宽度（左右中点距离 × 2）
+    // 该行宽度
     const rowWidth = Math.abs(rightX - leftX);
-    // 该行高度（上下边界间距 / 总行数）
-    const rowHeight = Math.abs(rightY - leftY) / GRID_ROWS * 2;
+    // 荒地总高度（底边Y - 顶边Y）
+    const totalHeight = Math.abs(bottomLeft.y - topLeft.y);
+    // 每格高度 = 总高度 / 行数，再乘透视缩放
+    const tileHeight = (totalHeight / GRID_ROWS) * scale;
 
     const pad = ISO_CONFIG.tilePadding;
     return {
       width: (rowWidth / GRID_COLS) * pad,
-      height: (rowHeight) * pad,
+      height: tileHeight * pad,
       scale,
     };
   };
