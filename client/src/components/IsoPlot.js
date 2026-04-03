@@ -94,7 +94,6 @@ export default function IsoPlot({ plot, emoji, isAnimating, emitParticle, zIndex
         zIndex,
         backgroundImage: 'url(/plot.png)',
       }}
-      onClick
       title={`[${row_idx}, ${col_idx}] ${crop_id || ''}`}
     >
       {crop_id ? (
