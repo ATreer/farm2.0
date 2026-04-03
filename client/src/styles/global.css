@@ -435,7 +435,7 @@ body.farm-bg .crop-info-panel {
   transition: all 0.2s ease;
   backdrop-filter: blur(1px);
   transform-origin: center center;
-  transform: skew(-36deg, 0);
+  transform: skew(-44deg, 0);
   box-sizing: border-box;
 }
 

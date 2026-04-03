@@ -27,8 +27,8 @@ const DIRT_AREA = {
 const GRID_ROWS = 4;
 const GRID_COLS = 8;
 const TILE_FILL = 0.85;
-const SKEW_ANGLE = -36; // 度（从-44°减小到-36°）
-const SKEW_TAN = Math.tan(Math.abs(SKEW_ANGLE) * Math.PI / 180); // tan(36°) ≈ 0.7265
+const SKEW_ANGLE = -44; // 度
+const SKEW_TAN = Math.tan(Math.abs(SKEW_ANGLE) * Math.PI / 180); // tan(44°) ≈ 0.9657
 
 export default function FarmView({ playerId, player, notify, refresh, emitParticle, lang }) {
   const [plots, setPlots] = useState([]);
@@ -189,11 +189,13 @@ export default function FarmView({ playerId, player, notify, refresh, emitPartic
     const tileH = rowHeight * TILE_FILL;
 
     // skew(-44deg) 补偿：偏移量 = tileH * tan(44°)
-    // 需要将中心向左移动半个偏移量（因为 skew 是以中心为参考）
     const skewOffsetX = (tileH / 2) * SKEW_TAN;
 
+    // 每行起始 x 向左偏移：第0行不偏移，第1行-0.25×tileW，第2行-0.5×，第3行-0.75×
+    const rowOffsetX = row * 0.25 * tileW;
+
     return {
-      centerX: centerX - skewOffsetX,
+      centerX: centerX - skewOffsetX - rowOffsetX,
       centerY,
       tileW,
       tileH,
