@@ -601,31 +601,33 @@ body.farm-bg .crop-info-panel {
   padding: 3px 0;
 }
 
-/* ==================== 导航标签 ==================== */
+/* ==================== 导航标签（右侧竖排） ==================== */
 .nav-tabs {
   display: flex;
-  gap: 4px;
-  margin-bottom: 6px;
-  flex-wrap: wrap;
-  position: relative;
-  z-index: 10;
+  flex-direction: column;
+  gap: 6px;
+  position: fixed;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 20;
 }
 
 .nav-tab {
   font-family: var(--pixel-font);
   font-size: 11px;
-  padding: 6px 14px;
-  background: rgba(255, 255, 255, 0.06);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 6px;
+  padding: 8px 12px;
+  background: var(--bg-main);
+  border: var(--pixel-border) var(--border);
+  border-radius: var(--radius);
   color: var(--text-dim);
   cursor: pointer;
   transition: var(--transition);
   display: flex;
   align-items: center;
   gap: 5px;
+  box-shadow: var(--pixel-shadow);
+  white-space: nowrap;
 }
 
 .nav-tab:hover {
