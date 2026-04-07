@@ -25,7 +25,14 @@ db.exec(`
     avatar_frame TEXT DEFAULT NULL
   );
 
-  -- 农田格子表
+  -- 头像框定义表
+  CREATE TABLE IF NOT EXISTS avatar_frames (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    min_level INTEGER NOT NULL DEFAULT 1,
+    image_url TEXT NOT NULL DEFAULT '',
+    sort_order INTEGER NOT NULL DEFAULT 0
+  );
   CREATE TABLE IF NOT EXISTS farm_plots (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     player_id TEXT NOT NULL,
@@ -110,6 +117,21 @@ try { db.exec(`ALTER TABLE crops ADD COLUMN season TEXT DEFAULT 'spring'`); } ca
 try { db.exec(`ALTER TABLE crops ADD COLUMN description TEXT DEFAULT ''`); } catch(e) {}
 try { db.exec(`ALTER TABLE players ADD COLUMN avatar_index INTEGER DEFAULT 0`); } catch(e) {}
 try { db.exec(`ALTER TABLE players ADD COLUMN avatar_frame TEXT DEFAULT NULL`); } catch(e) {}
+
+// 初始化头像框数据
+const initFrames = db.prepare('SELECT COUNT(*) as cnt FROM avatar_frames').get();
+if (initFrames.cnt === 0) {
+  const insertFrame = db.prepare(`INSERT INTO avatar_frames (id, name, min_level, image_url, sort_order) VALUES (?, ?, ?, ?, ?)`);
+  const frames = [
+    ['broken',   '破碎头像框',     1,  '/avatar-frames/broken.png',   1],
+    ['platinum', '白金头像框(测试)', 2,  '/avatar-frames/platinum.png', 2],
+    ['bronze',   '青铜头像框',     5,  '/avatar-frames/bronze.png',   3],
+    ['silver',   '白银头像框',     10, '/avatar-frames/silver.png',   4],
+    ['gold',     '黄金头像框',     15, '/avatar-frames/gold.png',     5],
+  ];
+  const insertFrames = db.transaction((items) => { for (const f of items) insertFrame.run(...f); });
+  insertFrames(frames);
+}
 
 const initCrops = db.prepare('SELECT COUNT(*) as cnt FROM crops').get();
 if (initCrops.cnt === 0) {

@@ -327,6 +327,31 @@ body.farm-bg .crop-info-panel {
   transition: all 0.2s;
 }
 
+/* 头像+头像框容器 */
+.topbar-avatar-wrap {
+  position: relative;
+  width: 46px;
+  height: 46px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.topbar-avatar-wrap .avatar-frame-img {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.topbar-avatar-wrap .topbar-avatar {
+  position: relative;
+  z-index: 2;
+}
+
 .topbar-avatar:hover {
   transform: scale(1.08);
 }
@@ -482,8 +507,32 @@ body.farm-bg .crop-info-panel {
   justify-content: center;
   background: rgba(255,255,255,0.08);
   flex-shrink: 0;
+}
+
+/* 悬浮框头像+头像框容器 */
+.profile-popup-avatar-wrap {
   position: relative;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
   cursor: pointer;
+}
+
+.profile-popup-avatar-wrap .avatar-frame-img {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.profile-popup-avatar-wrap .profile-popup-avatar {
+  position: relative;
+  z-index: 2;
 }
 
 .profile-popup-avatar span {
@@ -607,9 +656,18 @@ body.farm-bg .crop-info-panel {
 }
 
 .profile-frame-preview {
-  width: 24px;
-  height: 24px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.profile-frame-preview .avatar-frame-img {
+  width: 28px;
+  height: 28px;
 }
 
 .profile-frame-preview.no-frame {

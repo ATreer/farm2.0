@@ -72,6 +72,15 @@ function updatePlayer(id, fields) {
   return getPlayer(id);
 }
 
+function getAvatarFrames(level) {
+  return db.prepare('SELECT * FROM avatar_frames WHERE min_level <= ? ORDER BY sort_order').all(level);
+}
+
+function getAvatarFrameById(id) {
+  if (!id) return null;
+  return db.prepare('SELECT * FROM avatar_frames WHERE id = ?').get(id) || null;
+}
+
 function addExp(id, amount) {
   db.prepare('UPDATE players SET exp = exp + ? WHERE id = ?').run(amount, id);
   const player = getPlayer(id);
@@ -589,6 +598,8 @@ module.exports = {
   updatePlayerName,
   updatePlayerAvatar,
   updatePlayer,
+  getAvatarFrames,
+  getAvatarFrameById,
   addExp,
   addGold,
   getFarmPlots,

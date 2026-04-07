@@ -64,6 +64,27 @@ app.put('/api/player/:id', (req, res) => {
   }
 });
 
+// ==================== 头像框 ====================
+
+app.get('/api/avatar-frames', (req, res) => {
+  try {
+    const level = parseInt(req.query.level) || 1;
+    const frames = game.getAvatarFrames(level);
+    res.json({ success: true, data: frames });
+  } catch (err) {
+    res.status(400).json({ success: false, error: err.message });
+  }
+});
+
+app.get('/api/avatar-frames/:id', (req, res) => {
+  try {
+    const frame = game.getAvatarFrameById(req.params.id);
+    res.json({ success: true, data: frame });
+  } catch (err) {
+    res.status(400).json({ success: false, error: err.message });
+  }
+});
+
 // ==================== 农田 ====================
 
 app.get('/api/farm/:playerId', (req, res) => {

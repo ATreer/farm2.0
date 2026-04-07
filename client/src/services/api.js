@@ -20,6 +20,10 @@ export const updatePlayerName = (id, name) => request('PUT', `/api/player/${id}/
 export const updatePlayerAvatar = (id, avatarIndex) => request('PUT', `/api/player/${id}/avatar`, { avatar_index: avatarIndex });
 export const updatePlayer = (id, fields) => request('PUT', `/api/player/${id}`, fields);
 
+// 头像框
+export const getAvatarFrames = (level) => request('GET', `/api/avatar-frames?level=${level}`);
+export const getAvatarFrameById = (id) => request('GET', `/api/avatar-frames/${id}`);
+
 // 农田
 export const getFarmPlots = (playerId) => request('GET', `/api/farm/${playerId}`);
 export const plantCrop = (playerId, row, col, cropId) => request('POST', `/api/farm/${playerId}/plant`, { row, col, cropId });

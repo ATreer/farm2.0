@@ -3,29 +3,14 @@ import { t } from '../services/i18n';
 import assets from '../config/assets';
 import * as api from '../services/api';
 
-// 头像框配置：等级达到后解锁
-const AVATAR_FRAMES = [
-  { id: 'broken',  minLevel: 1,  name: '破碎头像框', border: '2px dashed #888', shadow: '0 0 4px rgba(136,136,136,0.4)' },
-  { id: 'platinum', minLevel: 2,  name: '白金头像框(测试)', border: '3px solid #e5e4e2', shadow: '0 0 8px rgba(229,228,226,0.8)' },
-  { id: 'bronze',  minLevel: 5,  name: '青铜头像框', border: '3px solid #cd7f32', shadow: '0 0 6px rgba(205,127,50,0.6)' },
-  { id: 'silver',  minLevel: 10, name: '白银头像框', border: '3px solid #c0c0c0', shadow: '0 0 6px rgba(192,192,192,0.6)' },
-  { id: 'gold',    minLevel: 15, name: '黄金头像框', border: '3px solid #ffd700', shadow: '0 0 8px rgba(255,215,0,0.7)' },
-];
-
-function getUnlockedFrames(level) {
-  return AVATAR_FRAMES.filter(f => level >= f.minLevel);
-}
-
-function getFrameById(id) {
-  return AVATAR_FRAMES.find(f => f.id === id) || null;
-}
-
 export default function TopBar({ player, time, onSleep, onOpenSettings, lang, refresh }) {
   const [showProfile, setShowProfile] = useState(false);
   const [sleepHours, setSleepHours] = useState(8);
   const [showSleepMenu, setShowSleepMenu] = useState(false);
   const [editingName, setEditingName] = useState(false);
   const [newName, setNewName] = useState('');
+  const [avatarFrames, setAvatarFrames] = useState([]);
+  const [currentFrame, setCurrentFrame] = useState(null);
   const profileRef = useRef(null);
 
   if (!player) return null;
@@ -36,7 +21,23 @@ export default function TopBar({ player, time, onSleep, onOpenSettings, lang, re
 
   const avatarIndex = (player.avatar_index || 0) % assets.avatars.list.length;
   const avatarEmoji = assets.avatars.list[avatarIndex];
-  const frame = getFrameById(player.avatar_frame);
+
+  // 加载头像框数据
+  useEffect(() => {
+    if (!player) return;
+    // 获取已解锁的头像框列表
+    api.getAvatarFrames(player.level).then(list => {
+      setAvatarFrames(list || []);
+    }).catch(() => {});
+    // 获取当前佩戴的头像框详情
+    if (player.avatar_frame) {
+      api.getAvatarFrameById(player.avatar_frame).then(f => {
+        setCurrentFrame(f || null);
+      }).catch(() => {});
+    } else {
+      setCurrentFrame(null);
+    }
+  }, [player?.level, player?.avatar_frame]);
 
   // 点击外部关闭悬浮框
   useEffect(() => {
@@ -77,12 +78,29 @@ export default function TopBar({ player, time, onSleep, onOpenSettings, lang, re
     }).catch(() => {});
   };
 
+  // 头像框图片渲染
+  const renderFrameImage = (frame, size = 38) => {
+    if (!frame || !frame.image_url) return null;
+    return (
+      <img
+        src={frame.image_url}
+        alt={frame.name}
+        className="avatar-frame-img"
+        style={{ width: size + 8, height: size + 8 }}
+        onError={(e) => { e.currentTarget.style.display = 'none'; }}
+      />
+    );
+  };
+
   return (
     <div className="top-bar-new">
       {/* 左侧：头像 + 信息（木制背景） */}
       <div className="topbar-left" onClick={() => setShowProfile(!showProfile)} style={{ cursor: 'pointer' }}>
-        <div className="topbar-avatar" style={frame ? { border: frame.border, boxShadow: frame.shadow } : {}}>
-          <span className="topbar-avatar-emoji">{avatarEmoji}</span>
+        <div className="topbar-avatar-wrap">
+          {renderFrameImage(currentFrame, 38)}
+          <div className="topbar-avatar">
+            <span className="topbar-avatar-emoji">{avatarEmoji}</span>
+          </div>
         </div>
         <div className="topbar-info">
           <div className="topbar-name">{player.name}</div>
@@ -138,8 +156,11 @@ export default function TopBar({ player, time, onSleep, onOpenSettings, lang, re
       {showProfile && (
         <div className="profile-popup" ref={profileRef}>
           <div className="profile-popup-header">
-            <div className="profile-popup-avatar" style={frame ? { border: frame.border, boxShadow: frame.shadow } : {}} onClick={(e) => { e.stopPropagation(); handleAvatarChange(); }} title={t('changeAvatar', lang)}>
-              <span>{avatarEmoji}</span>
+            <div className="profile-popup-avatar-wrap" onClick={(e) => { e.stopPropagation(); handleAvatarChange(); }} title={t('changeAvatar', lang)}>
+              {renderFrameImage(currentFrame, 40)}
+              <div className="profile-popup-avatar">
+                <span>{avatarEmoji}</span>
+              </div>
               <div className="profile-popup-avatar-hint">🔄</div>
             </div>
             <div style={{ flex: 1 }}>
@@ -200,13 +221,16 @@ export default function TopBar({ player, time, onSleep, onOpenSettings, lang, re
                 <div className="profile-frame-preview no-frame">✕</div>
                 <span>{t('noFrame', lang)}</span>
               </div>
-              {getUnlockedFrames(player.level).map(f => (
+              {avatarFrames.map(f => (
                 <div
                   key={f.id}
                   className={`profile-frame-option ${player.avatar_frame === f.id ? 'active' : ''}`}
                   onClick={(e) => { e.stopPropagation(); handleFrameChange(f.id); }}
                 >
-                  <div className="profile-frame-preview" style={{ border: f.border, boxShadow: f.shadow }} />
+                  <div className="profile-frame-preview">
+                    <img src={f.image_url} alt={f.name} className="avatar-frame-img" style={{ width: 28, height: 28 }}
+                      onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+                  </div>
                   <span>{f.name}</span>
                 </div>
               ))}
