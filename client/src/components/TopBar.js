@@ -1,49 +1,155 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { t } from '../services/i18n';
 import assets from '../config/assets';
 
-export default function TopBar({ player, time, onTimeAdvance, onSleep, lang }) {
+// 头像框配置：等级达到后解锁
+const AVATAR_FRAMES = [
+  { minLevel: 5,  name: '青铜头像框', border: '3px solid #cd7f32', shadow: '0 0 6px rgba(205,127,50,0.6)' },
+  { minLevel: 10, name: '白银头像框', border: '3px solid #c0c0c0', shadow: '0 0 6px rgba(192,192,192,0.6)' },
+  { minLevel: 15, name: '黄金头像框', border: '3px solid #ffd700', shadow: '0 0 8px rgba(255,215,0,0.7)' },
+];
+
+function getAvatarFrame(level) {
+  let frame = null;
+  for (const f of AVATAR_FRAMES) {
+    if (level >= f.minLevel) frame = f;
+  }
+  return frame;
+}
+
+export default function TopBar({ player, time, onSleep, onOpenSettings, lang }) {
+  const [showProfile, setShowProfile] = useState(false);
+  const [sleepHours, setSleepHours] = useState(8);
+  const [showSleepMenu, setShowSleepMenu] = useState(false);
+  const profileRef = useRef(null);
+
   if (!player) return null;
 
   const expPercent = player.nextLevelExp > 0
     ? Math.min(100, (player.currentExp / player.nextLevelExp) * 100)
     : 0;
 
+  const avatarIndex = player.level % assets.avatars.list.length;
+  const avatarEmoji = assets.avatars.list[avatarIndex];
+  const frame = getAvatarFrame(player.level);
+
+  // 点击外部关闭悬浮框
+  useEffect(() => {
+    if (!showProfile) return;
+    const handleClick = (e) => {
+      if (profileRef.current && !profileRef.current.contains(e.target)) {
+        setShowProfile(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [showProfile]);
+
+  const handleSleep = () => {
+    setShowSleepMenu(false);
+    onSleep(sleepHours);
+  };
+
   return (
-    <div className="top-bar">
-      <div className="top-bar-left">
-        <div className="player-info">
-          <span className="player-avatar">{assets.avatars.topbar}</span>
-          <span className="player-name">{player.name}</span>
-          <span className="level-badge">Lv.{player.level}</span>
+    <div className="top-bar-new">
+      {/* 左侧：头像 + 信息 */}
+      <div className="topbar-left" onClick={() => setShowProfile(!showProfile)} style={{ cursor: 'pointer' }}>
+        <div className="topbar-avatar" style={frame ? { border: frame.border, boxShadow: frame.shadow } : {}}>
+          <span className="topbar-avatar-emoji">{avatarEmoji}</span>
         </div>
-        <div className="exp-bar-container">
-          <span>{t('exp', lang)}</span>
-          <div className="exp-bar">
-            <div className="exp-bar-fill" style={{ width: `${expPercent}%` }} />
+        <div className="topbar-info">
+          <div className="topbar-name">{player.name}</div>
+          <div className="topbar-level">
+            <span>Lv.{player.level}</span>
+            <div className="topbar-exp-bar">
+              <div className="topbar-exp-fill" style={{ width: `${expPercent}%` }} />
+            </div>
+            <span className="topbar-exp-text">{player.currentExp}/{player.nextLevelExp}</span>
           </div>
-          <span>{player.currentExp}/{player.nextLevelExp}</span>
-        </div>
-        <div className="gold-display">
-          <span>{assets.stat.gold}</span>
-          <span>{player.gold}</span>
         </div>
       </div>
 
-      <div className="time-display">
+      {/* 中间：时间 */}
+      <div className="topbar-time">
         {time && (
           <>
-            <span className="season-icon">{time.seasonEmoji}</span>
+            <span>{time.seasonEmoji}</span>
             <span>{t(time.season, lang)} {t('day', lang, { n: time.day })}</span>
             <span>{assets.time.clock} {time.timeStr}</span>
           </>
         )}
-        <div className="time-controls">
-          <button className="btn btn-small" onClick={() => onTimeAdvance(10)}>{t('timeAdvance10', lang)}</button>
-          <button className="btn btn-small" onClick={() => onTimeAdvance(60)}>{t('timeAdvance60', lang)}</button>
-          <button className="btn btn-small btn-primary" onClick={onSleep}>{assets.btn.sleep} {t('sleep', lang)}</button>
-        </div>
       </div>
+
+      {/* 右侧：睡觉 + 设置 */}
+      <div className="topbar-right">
+        <div className="sleep-wrapper">
+          <button className="btn btn-small btn-primary" onClick={() => setShowSleepMenu(!showSleepMenu)}>
+            {assets.btn.sleep} {t('sleep', lang)}
+          </button>
+          {showSleepMenu && (
+            <div className="sleep-dropdown">
+              <div className="sleep-dropdown-title">{t('sleepHours', lang)}</div>
+              {[1, 2, 4, 6, 8, 12, 24].map(h => (
+                <div
+                  key={h}
+                  className={`sleep-option ${sleepHours === h ? 'active' : ''}`}
+                  onClick={(e) => { e.stopPropagation(); setSleepHours(h); }}
+                >
+                  {h} {t('hour', lang)}
+                </div>
+              ))}
+              <button className="btn btn-small btn-gold sleep-confirm" onClick={handleSleep}>
+                {t('sleepConfirm', lang)}
+              </button>
+            </div>
+          )}
+        </div>
+        <button className="btn btn-small" onClick={onOpenSettings}>
+          ⚙️
+        </button>
+      </div>
+
+      {/* 头像悬浮框：人物信息 */}
+      {showProfile && (
+        <div className="profile-popup" ref={profileRef}>
+          <div className="profile-popup-header">
+            <div className="profile-popup-avatar" style={frame ? { border: frame.border, boxShadow: frame.shadow } : {}}>
+              <span>{avatarEmoji}</span>
+            </div>
+            <div>
+              <div className="profile-popup-name">{player.name}</div>
+              <div className="profile-popup-title">
+                {(() => {
+                  const titles = t('titles', lang);
+                  return titles[Math.min(player.level - 1, titles.length - 1)];
+                })()}
+              </div>
+              <div className="profile-popup-level">Lv.{player.level}</div>
+            </div>
+          </div>
+          <div className="profile-popup-stats">
+            <div className="profile-popup-stat">
+              <span>{assets.stat.exp} {t('experience', lang)}</span>
+              <span>{player.currentExp}/{player.nextLevelExp}</span>
+            </div>
+            <div className="profile-popup-stat">
+              <span>{assets.stat.gold} {t('gold', lang)}</span>
+              <span>{player.gold}</span>
+            </div>
+            <div className="profile-popup-stat">
+              <span>{assets.stat.farmLevel} {t('farmLevel', lang)}</span>
+              <span>Lv.{player.farm_level}</span>
+            </div>
+            <div className="profile-popup-stat">
+              <span>{assets.stat.farmSize} {t('farmSize', lang)}</span>
+              <span>{player.max_farm_rows}×{player.max_farm_cols}</span>
+            </div>
+          </div>
+          {frame && (
+            <div className="profile-popup-frame">{frame.name}</div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

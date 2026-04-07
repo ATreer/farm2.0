@@ -8,16 +8,12 @@ import TopBar from './components/TopBar';
 import FarmView from './components/FarmView';
 import InventoryView from './components/InventoryView';
 import ShopView from './components/ShopView';
-import UpgradeView from './components/UpgradeView';
-import CharacterView from './components/CharacterView';
 import SettingsView from './components/SettingsView';
 
 const PAGES = {
   farm: 'farm',
   inventory: 'inventory',
   shop: 'shop',
-  upgrade: 'upgrade',
-  character: 'character',
   settings: 'settings',
 };
 
@@ -152,19 +148,15 @@ function App() {
     }
   };
 
-  const handleSleep = async () => {
+  const handleSleep = async (hours = 8) => {
     try {
-      const result = await api.sleepAdvance(playerId);
-      // 立即更新所有数据
-      setTime(result.time);
-      setPlayer(result.player);
-      // 强制刷新所有子组件
-      setRefreshKey(k => k + 1);
-      // 延迟再刷一次，确保子组件拿到最新数据
-      setTimeout(() => {
-        setRefreshKey(k => k + 1);
-      }, 500);
-      notify('💤 ' + t('sleepSuccess', lang), 'success');
+      // 睡觉 = 推进 hours * 6 分钟（每游戏小时=6真实分钟）
+      const minutes = hours * 6;
+      const data = await api.advanceTime(minutes);
+      setTime(data);
+      refresh();
+      setTimeout(() => refresh(), 500);
+      notify(`💤 ${t('sleepSuccess', lang)}`, 'success');
     } catch (e) {
       notify(e.message, 'error');
     }
@@ -178,9 +170,6 @@ function App() {
     { key: PAGES.farm, icon: assets.nav.farm, label: t('navFarm', lang) },
     { key: PAGES.inventory, icon: assets.nav.inventory, label: t('navInventory', lang) },
     { key: PAGES.shop, icon: assets.nav.shop, label: t('navShop', lang) },
-    { key: PAGES.upgrade, icon: assets.nav.upgrade, label: t('navUpgrade', lang) },
-    { key: PAGES.character, icon: assets.nav.character, label: t('navCharacter', lang) },
-    { key: PAGES.settings, icon: assets.nav.settings, label: t('navSettings', lang) },
   ];
 
   return (
@@ -195,8 +184,8 @@ function App() {
         player={player}
         time={time}
         lang={lang}
-        onTimeAdvance={handleTimeAdvance}
         onSleep={handleSleep}
+        onOpenSettings={() => setCurrentPage(PAGES.settings)}
       />
 
       <div className="nav-tabs">
@@ -239,19 +228,6 @@ function App() {
           refresh={refresh}
           emitParticle={emitParticle}
         />
-      )}
-      {currentPage === PAGES.upgrade && (
-        <UpgradeView
-          playerId={playerId}
-          player={player}
-          lang={lang}
-          notify={notify}
-          refresh={refresh}
-          emitParticle={emitParticle}
-        />
-      )}
-      {currentPage === PAGES.character && (
-        <CharacterView player={player} lang={lang} />
       )}
       {currentPage === PAGES.settings && (
         <SettingsView lang={lang} setLang={setLang} notify={notify} />
