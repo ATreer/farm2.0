@@ -310,8 +310,8 @@ body.farm-bg .crop-info-panel {
   gap: 10px;
   padding: 6px 12px;
   border-radius: 6px;
-  background: rgba(139, 90, 43, 0.25);
-  border: 1px solid rgba(139, 90, 43, 0.3);
+  background: #5a3a1e;
+  border: 1px solid #8b5a2b;
   flex-shrink: 0;
 }
 
