@@ -88,19 +88,17 @@ export default function TopBar({ player, time, onSleep, onOpenSettings, lang, re
         </div>
       </div>
 
-      {/* 中间：时间区域（毛玻璃背景） */}
-      <div className="topbar-time">
-        {time && (
-          <>
-            <span>{time.seasonEmoji}</span>
-            <span>{t(time.season, lang)} {t('day', lang, { n: time.day })}</span>
-            <span>{assets.time.clock} {time.timeStr}</span>
-          </>
-        )}
-      </div>
-
-      {/* 右侧：睡觉 + 设置 */}
+      {/* 右侧：时间 + 睡觉 + 设置 */}
       <div className="topbar-right">
+        <div className="topbar-time">
+          {time && (
+            <>
+              <span>{time.seasonEmoji}</span>
+              <span>{t(time.season, lang)} {t('day', lang, { n: time.day })}</span>
+              <span>{assets.time.clock} {time.timeStr}</span>
+            </>
+          )}
+        </div>
         <div className="sleep-wrapper">
           <button className="btn btn-small btn-primary" onClick={() => setShowSleepMenu(!showSleepMenu)}>
             {assets.btn.sleep} {t('sleep', lang)}
