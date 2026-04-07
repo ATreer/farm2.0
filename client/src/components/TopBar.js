@@ -5,6 +5,7 @@ import * as api from '../services/api';
 
 // 头像框配置：等级达到后解锁
 const AVATAR_FRAMES = [
+  { minLevel: 2,  name: '白金头像框(测试)', border: '3px solid #e5e4e2', shadow: '0 0 8px rgba(229,228,226,0.8)' },
   { minLevel: 5,  name: '青铜头像框', border: '3px solid #cd7f32', shadow: '0 0 6px rgba(205,127,50,0.6)' },
   { minLevel: 10, name: '白银头像框', border: '3px solid #c0c0c0', shadow: '0 0 6px rgba(192,192,192,0.6)' },
   { minLevel: 15, name: '黄金头像框', border: '3px solid #ffd700', shadow: '0 0 8px rgba(255,215,0,0.7)' },
