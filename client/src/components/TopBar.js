@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { t } from '../services/i18n';
 import assets from '../config/assets';
+import * as api from '../services/api';
 
 // 头像框配置：等级达到后解锁
 const AVATAR_FRAMES = [
@@ -17,10 +18,12 @@ function getAvatarFrame(level) {
   return frame;
 }
 
-export default function TopBar({ player, time, onSleep, onOpenSettings, lang }) {
+export default function TopBar({ player, time, onSleep, onOpenSettings, lang, refresh }) {
   const [showProfile, setShowProfile] = useState(false);
   const [sleepHours, setSleepHours] = useState(8);
   const [showSleepMenu, setShowSleepMenu] = useState(false);
+  const [editingName, setEditingName] = useState(false);
+  const [newName, setNewName] = useState('');
   const profileRef = useRef(null);
 
   if (!player) return null;
@@ -39,6 +42,7 @@ export default function TopBar({ player, time, onSleep, onOpenSettings, lang }) 
     const handleClick = (e) => {
       if (profileRef.current && !profileRef.current.contains(e.target)) {
         setShowProfile(false);
+        setEditingName(false);
       }
     };
     document.addEventListener('mousedown', handleClick);
@@ -50,9 +54,24 @@ export default function TopBar({ player, time, onSleep, onOpenSettings, lang }) 
     onSleep(sleepHours);
   };
 
+  const handleAvatarChange = () => {
+    const nextIndex = (avatarIndex + 1) % assets.avatars.list.length;
+    api.updatePlayerAvatar(player.id, nextIndex).then(() => {
+      refresh();
+    }).catch(() => {});
+  };
+
+  const handleNameChange = () => {
+    if (!newName.trim()) { setEditingName(false); return; }
+    api.updatePlayerName(player.id, newName.trim()).then(() => {
+      refresh();
+      setEditingName(false);
+    }).catch(() => {});
+  };
+
   return (
     <div className="top-bar-new">
-      {/* 左侧：头像 + 信息 */}
+      {/* 左侧：头像 + 信息（木制背景） */}
       <div className="topbar-left" onClick={() => setShowProfile(!showProfile)} style={{ cursor: 'pointer' }}>
         <div className="topbar-avatar" style={frame ? { border: frame.border, boxShadow: frame.shadow } : {}}>
           <span className="topbar-avatar-emoji">{avatarEmoji}</span>
@@ -69,7 +88,7 @@ export default function TopBar({ player, time, onSleep, onOpenSettings, lang }) 
         </div>
       </div>
 
-      {/* 中间：时间 */}
+      {/* 中间：时间区域（毛玻璃背景） */}
       <div className="topbar-time">
         {time && (
           <>
@@ -113,11 +132,29 @@ export default function TopBar({ player, time, onSleep, onOpenSettings, lang }) 
       {showProfile && (
         <div className="profile-popup" ref={profileRef}>
           <div className="profile-popup-header">
-            <div className="profile-popup-avatar" style={frame ? { border: frame.border, boxShadow: frame.shadow } : {}}>
+            <div className="profile-popup-avatar" style={frame ? { border: frame.border, boxShadow: frame.shadow } : {}} onClick={(e) => { e.stopPropagation(); handleAvatarChange(); }} title={t('changeAvatar', lang)}>
               <span>{avatarEmoji}</span>
+              <div className="profile-popup-avatar-hint">🔄</div>
             </div>
-            <div>
-              <div className="profile-popup-name">{player.name}</div>
+            <div style={{ flex: 1 }}>
+              {editingName ? (
+                <div className="profile-name-edit">
+                  <input
+                    className="profile-name-input"
+                    value={newName}
+                    onChange={(e) => setNewName(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleNameChange()}
+                    autoFocus
+                    maxLength={12}
+                  />
+                  <button className="btn btn-small btn-gold" onClick={handleNameChange}>✓</button>
+                  <button className="btn btn-small" onClick={() => setEditingName(false)}>✕</button>
+                </div>
+              ) : (
+                <div className="profile-popup-name" onClick={(e) => { e.stopPropagation(); setNewName(player.name); setEditingName(true); }} title={t('changeName', lang)}>
+                  {player.name} ✏️
+                </div>
+              )}
               <div className="profile-popup-title">
                 {(() => {
                   const titles = t('titles', lang);

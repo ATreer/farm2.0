@@ -186,6 +186,7 @@ function App() {
         lang={lang}
         onSleep={handleSleep}
         onOpenSettings={() => setCurrentPage(PAGES.settings)}
+        refresh={refresh}
       />
 
       <div className="nav-tabs">

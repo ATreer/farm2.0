@@ -58,6 +58,11 @@ function updatePlayerName(id, name) {
   return getPlayer(id);
 }
 
+function updatePlayerAvatar(id, avatarIndex) {
+  db.prepare('UPDATE players SET avatar_index = ? WHERE id = ?').run(avatarIndex, id);
+  return getPlayer(id);
+}
+
 function addExp(id, amount) {
   db.prepare('UPDATE players SET exp = exp + ? WHERE id = ?').run(amount, id);
   const player = getPlayer(id);
@@ -573,6 +578,7 @@ module.exports = {
   createPlayer,
   getPlayer,
   updatePlayerName,
+  updatePlayerAvatar,
   addExp,
   addGold,
   getFarmPlots,

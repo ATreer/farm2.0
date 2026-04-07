@@ -20,7 +20,8 @@ db.exec(`
     farm_level INTEGER NOT NULL DEFAULT ${config.farm.initialLevel},
     max_farm_rows INTEGER NOT NULL DEFAULT ${config.farm.initialRows},
     max_farm_cols INTEGER NOT NULL DEFAULT ${config.farm.initialCols},
-    created_at TEXT DEFAULT (datetime('now'))
+    created_at TEXT DEFAULT (datetime('now')),
+    avatar_index INTEGER NOT NULL DEFAULT 0
   );
 
   -- 农田格子表
@@ -106,6 +107,7 @@ db.exec(`
 try { db.exec(`ALTER TABLE crops ADD COLUMN rarity INTEGER DEFAULT 1`); } catch(e) {}
 try { db.exec(`ALTER TABLE crops ADD COLUMN season TEXT DEFAULT 'spring'`); } catch(e) {}
 try { db.exec(`ALTER TABLE crops ADD COLUMN description TEXT DEFAULT ''`); } catch(e) {}
+try { db.exec(`ALTER TABLE players ADD COLUMN avatar_index INTEGER DEFAULT 0`); } catch(e) {}
 
 const initCrops = db.prepare('SELECT COUNT(*) as cnt FROM crops').get();
 if (initCrops.cnt === 0) {

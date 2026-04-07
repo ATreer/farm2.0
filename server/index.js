@@ -44,6 +44,15 @@ app.put('/api/player/:id/name', (req, res) => {
   }
 });
 
+app.put('/api/player/:id/avatar', (req, res) => {
+  try {
+    const player = game.updatePlayerAvatar(req.params.id, req.body.avatar_index);
+    res.json({ success: true, data: player });
+  } catch (err) {
+    res.status(400).json({ success: false, error: err.message });
+  }
+});
+
 // ==================== 农田 ====================
 
 app.get('/api/farm/:playerId', (req, res) => {

@@ -17,6 +17,7 @@ const request = async (method, path, body) => {
 export const createPlayer = (name) => request('POST', '/api/player', { name });
 export const getPlayer = (id) => request('GET', `/api/player/${id}`);
 export const updatePlayerName = (id, name) => request('PUT', `/api/player/${id}/name`, { name });
+export const updatePlayerAvatar = (id, avatarIndex) => request('PUT', `/api/player/${id}/avatar`, { avatar_index: avatarIndex });
 
 // 农田
 export const getFarmPlots = (playerId) => request('GET', `/api/farm/${playerId}`);
