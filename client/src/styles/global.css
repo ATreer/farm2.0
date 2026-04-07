@@ -1708,6 +1708,36 @@ body.farm-bg .crop-info-panel {
   text-align: center;
 }
 
+/* 缩放目标勾选 */
+.settings-scale-area {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.scale-targets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.scale-target-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  user-select: none;
+}
+
+.scale-target-item input[type="checkbox"] {
+  accent-color: var(--gold);
+  width: 14px;
+  height: 14px;
+  cursor: pointer;
+}
+
 /* ==================== 响应式 ==================== */
 @media (max-width: 900px) {
   .farm-container:not(.iso-farm-container) {

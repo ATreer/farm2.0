@@ -89,6 +89,11 @@ const zh = {
   uiScale: '界面缩放',
   uiScaleDesc: '调整UI元素大小比例(50%-200%)',
   save: '保存',
+  scaleButtons: '按钮',
+  scaleAvatar: '头像框',
+  scaleFonts: '字体',
+  scalePopups: '悬浮框',
+  scaleNav: '导航',
 
   // 背包
   inventory: '背包',
@@ -258,6 +263,11 @@ const en = {
   uiScale: 'UI Scale',
   uiScaleDesc: 'Adjust UI element size (50%-200%)',
   save: 'Save',
+  scaleButtons: 'Buttons',
+  scaleAvatar: 'Avatar Frame',
+  scaleFonts: 'Fonts',
+  scalePopups: 'Popups',
+  scaleNav: 'Navigation',
 
   inventory: 'Inventory',
   itemTypes: 'items',

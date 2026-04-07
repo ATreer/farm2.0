@@ -3,8 +3,17 @@ import { t } from '../services/i18n';
 import assets from '../config/assets';
 import * as api from '../services/api';
 
-export default function SettingsView({ lang, setLang, notify, playerId, uiScale, setUiScale }) {
+const SCALE_TARGET_OPTIONS = [
+  { key: 'buttons', labelKey: 'scaleButtons' },
+  { key: 'avatar',  labelKey: 'scaleAvatar' },
+  { key: 'fonts',   labelKey: 'scaleFonts' },
+  { key: 'popups',  labelKey: 'scalePopups' },
+  { key: 'nav',     labelKey: 'scaleNav' },
+];
+
+export default function SettingsView({ lang, setLang, notify, playerId, uiScale, setUiScale, scaleTargets, setScaleTargets }) {
   const [localScale, setLocalScale] = useState(uiScale);
+  const [localTargets, setLocalTargets] = useState(scaleTargets);
   const [saving, setSaving] = useState(false);
 
   const handleLangChange = (newLang) => {
@@ -19,12 +28,19 @@ export default function SettingsView({ lang, setLang, notify, playerId, uiScale,
     setUiScale(scale);
   };
 
+  const handleTargetToggle = (key) => {
+    const next = { ...localTargets, [key]: !localTargets[key] };
+    setLocalTargets(next);
+    setScaleTargets(next);
+  };
+
   const handleScaleSave = async () => {
     if (!playerId) return;
     setSaving(true);
     try {
       await api.setPlayerSetting(playerId, 'ui_scale', localScale.toString());
-      notify(lang === 'zh' ? '缩放比例已保存' : 'Scale saved', 'success');
+      await api.setPlayerSetting(playerId, 'scale_targets', JSON.stringify(localTargets));
+      notify(lang === 'zh' ? '缩放设置已保存' : 'Scale settings saved', 'success');
     } catch {
       notify(lang === 'zh' ? '保存失败' : 'Save failed', 'error');
     }
@@ -50,20 +66,34 @@ export default function SettingsView({ lang, setLang, notify, playerId, uiScale,
             <div className="settings-label">🔍 {t('uiScale', lang)}</div>
             <div className="settings-desc">{t('uiScaleDesc', lang)}</div>
           </div>
-          <div className="settings-control settings-scale-control">
-            <input
-              type="range"
-              className="scale-slider"
-              min="0.5"
-              max="2"
-              step="0.1"
-              value={localScale}
-              onChange={(e) => handleScaleChange(e.target.value)}
-            />
-            <span className="scale-value">{Math.round(localScale * 100)}%</span>
-            <button className="btn btn-small btn-gold" onClick={handleScaleSave} disabled={saving}>
-              {saving ? '...' : t('save', lang)}
-            </button>
+          <div className="settings-scale-area">
+            <div className="settings-scale-control">
+              <input
+                type="range"
+                className="scale-slider"
+                min="0.5"
+                max="2"
+                step="0.1"
+                value={localScale}
+                onChange={(e) => handleScaleChange(e.target.value)}
+              />
+              <span className="scale-value">{Math.round(localScale * 100)}%</span>
+              <button className="btn btn-small btn-gold" onClick={handleScaleSave} disabled={saving}>
+                {saving ? '...' : t('save', lang)}
+              </button>
+            </div>
+            <div className="scale-targets">
+              {SCALE_TARGET_OPTIONS.map(opt => (
+                <label key={opt.key} className="scale-target-item">
+                  <input
+                    type="checkbox"
+                    checked={!!localTargets[opt.key]}
+                    onChange={() => handleTargetToggle(opt.key)}
+                  />
+                  <span>{t(opt.labelKey, lang)}</span>
+                </label>
+              ))}
+            </div>
           </div>
         </div>
 

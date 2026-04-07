@@ -45,6 +45,13 @@ function App() {
   const [refreshKey, setRefreshKey] = useState(0);
   const [lang, setLang] = useState(() => localStorage.getItem('farmLang') || 'zh');
   const [uiScale, setUiScale] = useState(1);
+  const [scaleTargets, setScaleTargets] = useState({
+    buttons: true,
+    avatar: true,
+    fonts: true,
+    popups: true,
+    nav: true,
+  });
   const phaserRef = useRef(null);
 
   // 初始化 Phaser 粒子覆盖层
@@ -102,6 +109,12 @@ function App() {
           if (!isNaN(scale) && scale >= 0.5 && scale <= 2) {
             setUiScale(scale);
           }
+        }
+        if (settings.scale_targets) {
+          try {
+            const targets = JSON.parse(settings.scale_targets);
+            setScaleTargets(prev => ({ ...prev, ...targets }));
+          } catch {}
         }
       } catch {
         localStorage.removeItem('farmPlayerId');
@@ -171,13 +184,39 @@ function App() {
     }
   };
 
-  // 应用UI缩放到body（使用zoom避免影响fixed定位）
+  // 应用UI缩放（根据勾选项分别对不同元素应用zoom）
   useEffect(() => {
-    document.body.style.zoom = uiScale;
-    return () => {
-      document.body.style.zoom = '';
-    };
-  }, [uiScale]);
+    const reset = (sel) => { document.querySelectorAll(sel).forEach(el => el.style.zoom = ''); };
+    const apply = (sel) => { document.querySelectorAll(sel).forEach(el => el.style.zoom = uiScale); };
+
+    // 先全部重置
+    reset('.btn, .nav-tab, .topbar-avatar-wrap, .topbar-avatar, .profile-popup, .profile-popup-avatar-wrap, .nav-tabs, .sleep-dropdown, .topbar-time');
+    document.querySelectorAll('.panel, .settings-item, .topbar-name, .topbar-level, .topbar-exp-text, .nav-tab, .profile-popup-name, .profile-popup-title, .profile-popup-level, .profile-popup-stat, .profile-frame-title, .profile-frame-option, .milestone-item, .upgrade-info-row, .panel-title, .settings-label, .settings-desc, .scale-value, .sleep-option, .sleep-dropdown-title, .crop-info-panel').forEach(el => el.style.zoom = '');
+
+    if (uiScale === 1) return;
+
+    // 按勾选项分别应用
+    if (scaleTargets.buttons) {
+      apply('.btn');
+      apply('.nav-tab');
+    }
+    if (scaleTargets.avatar) {
+      apply('.topbar-avatar-wrap');
+      apply('.topbar-avatar');
+      apply('.profile-popup-avatar-wrap');
+    }
+    if (scaleTargets.fonts) {
+      document.querySelectorAll('.topbar-name, .topbar-level, .topbar-exp-text, .nav-tab, .profile-popup-name, .profile-popup-title, .profile-popup-level, .profile-popup-stat, .profile-frame-title, .profile-frame-option, .milestone-item, .upgrade-info-row, .panel-title, .settings-label, .settings-desc, .scale-value, .sleep-option, .sleep-dropdown-title, .crop-info-panel').forEach(el => el.style.zoom = uiScale);
+    }
+    if (scaleTargets.popups) {
+      apply('.profile-popup');
+      apply('.sleep-dropdown');
+      apply('.topbar-time');
+    }
+    if (scaleTargets.nav) {
+      apply('.nav-tabs');
+    }
+  }, [uiScale, scaleTargets]);
 
   if (!playerId || !player) {
     return <StartScreen onStart={handleStart} lang={lang} />;
@@ -248,7 +287,7 @@ function App() {
         />
       )}
       {currentPage === PAGES.settings && (
-        <SettingsView lang={lang} setLang={setLang} notify={notify} playerId={playerId} uiScale={uiScale} setUiScale={setUiScale} />
+        <SettingsView lang={lang} setLang={setLang} notify={notify} playerId={playerId} uiScale={uiScale} setUiScale={setUiScale} scaleTargets={scaleTargets} setScaleTargets={setScaleTargets} />
       )}
     </div>
   );
