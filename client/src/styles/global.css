@@ -722,8 +722,8 @@ body.farm-bg .crop-info-panel {
   gap: 6px;
   position: fixed;
   right: 10px;
-  top: 50%;
-  transform: translateY(-50%);
+  bottom: 50%;
+  transform: translateY(50%);
   z-index: 20;
 }
 

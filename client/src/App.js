@@ -181,8 +181,16 @@ function App() {
     { key: PAGES.shop, icon: assets.nav.shop, label: t('navShop', lang) },
   ];
 
+  // 应用UI缩放到body（使用zoom避免影响fixed定位）
+  useEffect(() => {
+    document.body.style.zoom = uiScale;
+    return () => {
+      document.body.style.zoom = '';
+    };
+  }, [uiScale]);
+
   return (
-    <div className="app-container" style={{ transform: `scale(${uiScale})`, transformOrigin: 'top left', width: `${100 / uiScale}%` }}>
+    <div className="app-container">
       {notification && (
         <div key={notification.id} className={`notification ${notification.type}`}>
           {notification.message}
