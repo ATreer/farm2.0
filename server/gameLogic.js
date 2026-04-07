@@ -63,6 +63,15 @@ function updatePlayerAvatar(id, avatarIndex) {
   return getPlayer(id);
 }
 
+function updatePlayer(id, fields) {
+  const allowed = ['name', 'avatar_index', 'avatar_frame'];
+  for (const key of Object.keys(fields)) {
+    if (!allowed.includes(key)) continue;
+    db.prepare(`UPDATE players SET ${key} = ? WHERE id = ?`).run(fields[key], id);
+  }
+  return getPlayer(id);
+}
+
 function addExp(id, amount) {
   db.prepare('UPDATE players SET exp = exp + ? WHERE id = ?').run(amount, id);
   const player = getPlayer(id);
@@ -579,6 +588,7 @@ module.exports = {
   getPlayer,
   updatePlayerName,
   updatePlayerAvatar,
+  updatePlayer,
   addExp,
   addGold,
   getFarmPlots,

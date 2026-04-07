@@ -565,6 +565,62 @@ body.farm-bg .crop-info-panel {
   border-top: 1px solid rgba(205,127,50,0.3);
 }
 
+/* 头像框选择器 */
+.profile-frame-selector {
+  margin-top: 8px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  padding-top: 8px;
+}
+
+.profile-frame-title {
+  font-size: 10px;
+  color: var(--text-dim);
+  margin-bottom: 6px;
+}
+
+.profile-frame-list {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.profile-frame-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 4px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.15s;
+  font-size: 9px;
+  color: var(--text-dim);
+}
+
+.profile-frame-option:hover {
+  background: rgba(255,255,255,0.06);
+}
+
+.profile-frame-option.active {
+  background: rgba(233, 69, 96, 0.15);
+  color: var(--accent);
+}
+
+.profile-frame-preview {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+}
+
+.profile-frame-preview.no-frame {
+  border: 1px dashed rgba(255,255,255,0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
 /* 升级说明表格 */
 .upgrade-info-table {
   margin: 8px 0;

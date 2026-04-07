@@ -53,6 +53,17 @@ app.put('/api/player/:id/avatar', (req, res) => {
   }
 });
 
+// ==================== 通用玩家更新 ====================
+
+app.put('/api/player/:id', (req, res) => {
+  try {
+    const player = game.updatePlayer(req.params.id, req.body);
+    res.json({ success: true, data: player });
+  } catch (err) {
+    res.status(400).json({ success: false, error: err.message });
+  }
+});
+
 // ==================== 农田 ====================
 
 app.get('/api/farm/:playerId', (req, res) => {

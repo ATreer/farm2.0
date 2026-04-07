@@ -5,18 +5,19 @@ import * as api from '../services/api';
 
 // 头像框配置：等级达到后解锁
 const AVATAR_FRAMES = [
-  { minLevel: 2,  name: '白金头像框(测试)', border: '3px solid #e5e4e2', shadow: '0 0 8px rgba(229,228,226,0.8)' },
-  { minLevel: 5,  name: '青铜头像框', border: '3px solid #cd7f32', shadow: '0 0 6px rgba(205,127,50,0.6)' },
-  { minLevel: 10, name: '白银头像框', border: '3px solid #c0c0c0', shadow: '0 0 6px rgba(192,192,192,0.6)' },
-  { minLevel: 15, name: '黄金头像框', border: '3px solid #ffd700', shadow: '0 0 8px rgba(255,215,0,0.7)' },
+  { id: 'broken',  minLevel: 1,  name: '破碎头像框', border: '2px dashed #888', shadow: '0 0 4px rgba(136,136,136,0.4)' },
+  { id: 'platinum', minLevel: 2,  name: '白金头像框(测试)', border: '3px solid #e5e4e2', shadow: '0 0 8px rgba(229,228,226,0.8)' },
+  { id: 'bronze',  minLevel: 5,  name: '青铜头像框', border: '3px solid #cd7f32', shadow: '0 0 6px rgba(205,127,50,0.6)' },
+  { id: 'silver',  minLevel: 10, name: '白银头像框', border: '3px solid #c0c0c0', shadow: '0 0 6px rgba(192,192,192,0.6)' },
+  { id: 'gold',    minLevel: 15, name: '黄金头像框', border: '3px solid #ffd700', shadow: '0 0 8px rgba(255,215,0,0.7)' },
 ];
 
-function getAvatarFrame(level) {
-  let frame = null;
-  for (const f of AVATAR_FRAMES) {
-    if (level >= f.minLevel) frame = f;
-  }
-  return frame;
+function getUnlockedFrames(level) {
+  return AVATAR_FRAMES.filter(f => level >= f.minLevel);
+}
+
+function getFrameById(id) {
+  return AVATAR_FRAMES.find(f => f.id === id) || null;
 }
 
 export default function TopBar({ player, time, onSleep, onOpenSettings, lang, refresh }) {
@@ -33,9 +34,9 @@ export default function TopBar({ player, time, onSleep, onOpenSettings, lang, re
     ? Math.min(100, (player.currentExp / player.nextLevelExp) * 100)
     : 0;
 
-  const avatarIndex = player.level % assets.avatars.list.length;
+  const avatarIndex = (player.avatar_index || 0) % assets.avatars.list.length;
   const avatarEmoji = assets.avatars.list[avatarIndex];
-  const frame = getAvatarFrame(player.level);
+  const frame = getFrameById(player.avatar_frame);
 
   // 点击外部关闭悬浮框
   useEffect(() => {
@@ -56,7 +57,7 @@ export default function TopBar({ player, time, onSleep, onOpenSettings, lang, re
   };
 
   const handleAvatarChange = () => {
-    const nextIndex = (avatarIndex + 1) % assets.avatars.list.length;
+    const nextIndex = ((player.avatar_index || 0) + 1) % assets.avatars.list.length;
     api.updatePlayerAvatar(player.id, nextIndex).then(() => {
       refresh();
     }).catch(() => {});
@@ -67,6 +68,12 @@ export default function TopBar({ player, time, onSleep, onOpenSettings, lang, re
     api.updatePlayerName(player.id, newName.trim()).then(() => {
       refresh();
       setEditingName(false);
+    }).catch(() => {});
+  };
+
+  const handleFrameChange = (frameId) => {
+    api.updatePlayer(player.id, { avatar_frame: frameId || null }).then(() => {
+      refresh();
     }).catch(() => {});
   };
 
@@ -181,9 +188,30 @@ export default function TopBar({ player, time, onSleep, onOpenSettings, lang, re
               <span>{player.max_farm_rows}×{player.max_farm_cols}</span>
             </div>
           </div>
-          {frame && (
-            <div className="profile-popup-frame">{frame.name}</div>
-          )}
+          {/* 头像框选择器 */}
+          <div className="profile-frame-selector">
+            <div className="profile-frame-title">{t('avatarFrame', lang)}</div>
+            <div className="profile-frame-list">
+              {/* 不戴选项 */}
+              <div
+                className={`profile-frame-option ${!player.avatar_frame ? 'active' : ''}`}
+                onClick={(e) => { e.stopPropagation(); handleFrameChange(null); }}
+              >
+                <div className="profile-frame-preview no-frame">✕</div>
+                <span>{t('noFrame', lang)}</span>
+              </div>
+              {getUnlockedFrames(player.level).map(f => (
+                <div
+                  key={f.id}
+                  className={`profile-frame-option ${player.avatar_frame === f.id ? 'active' : ''}`}
+                  onClick={(e) => { e.stopPropagation(); handleFrameChange(f.id); }}
+                >
+                  <div className="profile-frame-preview" style={{ border: f.border, boxShadow: f.shadow }} />
+                  <span>{f.name}</span>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       )}
     </div>

@@ -84,6 +84,8 @@ const zh = {
   milestone15: '解锁黄金头像框',
   changeAvatar: '点击更换头像',
   changeName: '点击修改昵称',
+  avatarFrame: '头像框',
+  noFrame: '不戴',
 
   // 背包
   inventory: '背包',
@@ -248,6 +250,8 @@ const en = {
   milestone15: 'Unlock Gold Frame',
   changeAvatar: 'Click to change avatar',
   changeName: 'Click to edit name',
+  avatarFrame: 'Avatar Frame',
+  noFrame: 'None',
 
   inventory: 'Inventory',
   itemTypes: 'items',
