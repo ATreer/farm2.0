@@ -128,16 +128,13 @@ export default function SettingsView({ lang, setLang, notify, playerId, uiScale,
           <div className="upgrade-info-table">
             <div className="upgrade-info-row header">
               <span>{t('level', lang)}</span>
-              <span>{t('farmSize', lang)}</span>
-              <span>{t('cost', lang)}</span>
+              <span>{t('landQuality', lang)}</span>
+              <span>{t('effect', lang)}</span>
               <span>{t('reqLevel', lang)}</span>
             </div>
-            <div className="upgrade-info-row"><span>Lv.1</span><span>3×3</span><span>-</span><span>1</span></div>
-            <div className="upgrade-info-row"><span>Lv.2</span><span>4×4</span><span>500💰</span><span>3</span></div>
-            <div className="upgrade-info-row"><span>Lv.3</span><span>5×5</span><span>1500💰</span><span>5</span></div>
-            <div className="upgrade-info-row"><span>Lv.4</span><span>6×6</span><span>4000💰</span><span>8</span></div>
-            <div className="upgrade-info-row"><span>Lv.5</span><span>7×7</span><span>10000💰</span><span>11</span></div>
-            <div className="upgrade-info-row"><span>Lv.6</span><span>8×8</span><span>25000💰</span><span>15</span></div>
+            <div className="upgrade-info-row"><span>Lv.1</span><span>{t('normalLand', lang)}</span><span>{t('normalLandDesc', lang)}</span><span>1</span></div>
+            <div className="upgrade-info-row"><span>Lv.10</span><span>{t('premiumLand', lang)}</span><span>{t('premiumLandDesc', lang)}</span><span>10</span></div>
+            <div className="upgrade-info-row"><span>Lv.20</span><span>{t('epicLand', lang)}</span><span>{t('epicLandDesc', lang)}</span><span>20</span></div>
           </div>
           <div className="upgrade-milestones">
             <div className="milestone-item">🏅 Lv.5 → {t('milestone5', lang)}</div>
