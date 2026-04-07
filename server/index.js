@@ -64,6 +64,27 @@ app.put('/api/player/:id', (req, res) => {
   }
 });
 
+// ==================== 玩家设置 ====================
+
+app.get('/api/player/:id/settings', (req, res) => {
+  try {
+    const settings = game.getAllPlayerSettings(req.params.id);
+    res.json({ success: true, data: settings });
+  } catch (err) {
+    res.status(400).json({ success: false, error: err.message });
+  }
+});
+
+app.put('/api/player/:id/settings', (req, res) => {
+  try {
+    const { key, value } = req.body;
+    game.setPlayerSetting(req.params.id, key, value);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(400).json({ success: false, error: err.message });
+  }
+});
+
 // ==================== 头像框 ====================
 
 app.get('/api/avatar-frames', (req, res) => {

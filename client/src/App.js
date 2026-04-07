@@ -44,6 +44,7 @@ function App() {
   const [notification, setNotification] = useState(null);
   const [refreshKey, setRefreshKey] = useState(0);
   const [lang, setLang] = useState(() => localStorage.getItem('farmLang') || 'zh');
+  const [uiScale, setUiScale] = useState(1);
   const phaserRef = useRef(null);
 
   // 初始化 Phaser 粒子覆盖层
@@ -94,6 +95,14 @@ function App() {
       try {
         const p = await api.getPlayer(playerId);
         setPlayer(p);
+        // 加载玩家设置
+        const settings = await api.getPlayerSettings(playerId);
+        if (settings.ui_scale) {
+          const scale = parseFloat(settings.ui_scale);
+          if (!isNaN(scale) && scale >= 0.5 && scale <= 2) {
+            setUiScale(scale);
+          }
+        }
       } catch {
         localStorage.removeItem('farmPlayerId');
         setPlayerId(null);
@@ -173,7 +182,7 @@ function App() {
   ];
 
   return (
-    <div className="app-container">
+    <div className="app-container" style={{ transform: `scale(${uiScale})`, transformOrigin: 'top left', width: `${100 / uiScale}%` }}>
       {notification && (
         <div key={notification.id} className={`notification ${notification.type}`}>
           {notification.message}
@@ -231,7 +240,7 @@ function App() {
         />
       )}
       {currentPage === PAGES.settings && (
-        <SettingsView lang={lang} setLang={setLang} notify={notify} />
+        <SettingsView lang={lang} setLang={setLang} notify={notify} playerId={playerId} uiScale={uiScale} setUiScale={setUiScale} />
       )}
     </div>
   );

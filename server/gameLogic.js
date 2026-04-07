@@ -81,6 +81,22 @@ function getAvatarFrameById(id) {
   return db.prepare('SELECT * FROM avatar_frames WHERE id = ?').get(id) || null;
 }
 
+function getPlayerSetting(playerId, key) {
+  const row = db.prepare('SELECT setting_value FROM player_settings WHERE player_id = ? AND setting_key = ?').get(playerId, key);
+  return row ? row.setting_value : null;
+}
+
+function setPlayerSetting(playerId, key, value) {
+  db.prepare('INSERT INTO player_settings (player_id, setting_key, setting_value) VALUES (?, ?, ?) ON CONFLICT(player_id, setting_key) DO UPDATE SET setting_value = ?').run(playerId, key, value, value);
+}
+
+function getAllPlayerSettings(playerId) {
+  const rows = db.prepare('SELECT setting_key, setting_value FROM player_settings WHERE player_id = ?').all(playerId);
+  const settings = {};
+  for (const r of rows) settings[r.setting_key] = r.setting_value;
+  return settings;
+}
+
 function addExp(id, amount) {
   db.prepare('UPDATE players SET exp = exp + ? WHERE id = ?').run(amount, id);
   const player = getPlayer(id);
@@ -600,6 +616,9 @@ module.exports = {
   updatePlayer,
   getAvatarFrames,
   getAvatarFrameById,
+  getPlayerSetting,
+  setPlayerSetting,
+  getAllPlayerSettings,
   addExp,
   addGold,
   getFarmPlots,

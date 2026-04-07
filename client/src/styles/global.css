@@ -1663,6 +1663,51 @@ body.farm-bg .crop-info-panel {
   flex-shrink: 0;
 }
 
+/* 缩放滑块 */
+.settings-scale-control {
+  align-items: center;
+  gap: 10px;
+}
+
+.scale-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 120px;
+  height: 6px;
+  background: rgba(255,255,255,0.15);
+  border-radius: 3px;
+  outline: none;
+  cursor: pointer;
+}
+
+.scale-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--gold);
+  cursor: pointer;
+  box-shadow: 0 0 4px rgba(255,215,0,0.5);
+}
+
+.scale-slider::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--gold);
+  cursor: pointer;
+  border: none;
+}
+
+.scale-value {
+  font-family: var(--pixel-font);
+  font-size: 12px;
+  color: var(--gold);
+  min-width: 36px;
+  text-align: center;
+}
+
 /* ==================== 响应式 ==================== */
 @media (max-width: 900px) {
   .farm-container:not(.iso-farm-container) {

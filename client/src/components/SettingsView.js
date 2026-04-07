@@ -1,12 +1,34 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { t } from '../services/i18n';
 import assets from '../config/assets';
+import * as api from '../services/api';
 
-export default function SettingsView({ lang, setLang, notify }) {
+export default function SettingsView({ lang, setLang, notify, playerId, uiScale, setUiScale }) {
+  const [localScale, setLocalScale] = useState(uiScale);
+  const [saving, setSaving] = useState(false);
+
   const handleLangChange = (newLang) => {
     setLang(newLang);
     localStorage.setItem('farmLang', newLang);
     notify(newLang === 'zh' ? '已切换为中文' : 'Switched to English', 'success');
+  };
+
+  const handleScaleChange = (value) => {
+    const scale = parseFloat(value);
+    setLocalScale(scale);
+    setUiScale(scale);
+  };
+
+  const handleScaleSave = async () => {
+    if (!playerId) return;
+    setSaving(true);
+    try {
+      await api.setPlayerSetting(playerId, 'ui_scale', localScale.toString());
+      notify(lang === 'zh' ? '缩放比例已保存' : 'Scale saved', 'success');
+    } catch {
+      notify(lang === 'zh' ? '保存失败' : 'Save failed', 'error');
+    }
+    setSaving(false);
   };
 
   const handleReset = () => {
@@ -22,6 +44,29 @@ export default function SettingsView({ lang, setLang, notify }) {
       <div className="panel-title">{assets.panel.settings} {t('settings', lang)}</div>
 
       <div className="settings-list">
+        {/* UI缩放 */}
+        <div className="settings-item">
+          <div className="settings-info">
+            <div className="settings-label">🔍 {t('uiScale', lang)}</div>
+            <div className="settings-desc">{t('uiScaleDesc', lang)}</div>
+          </div>
+          <div className="settings-control settings-scale-control">
+            <input
+              type="range"
+              className="scale-slider"
+              min="0.5"
+              max="2"
+              step="0.1"
+              value={localScale}
+              onChange={(e) => handleScaleChange(e.target.value)}
+            />
+            <span className="scale-value">{Math.round(localScale * 100)}%</span>
+            <button className="btn btn-small btn-gold" onClick={handleScaleSave} disabled={saving}>
+              {saving ? '...' : t('save', lang)}
+            </button>
+          </div>
+        </div>
+
         {/* 语言设置 */}
         <div className="settings-item">
           <div className="settings-info">

@@ -33,6 +33,15 @@ db.exec(`
     image_url TEXT NOT NULL DEFAULT '',
     sort_order INTEGER NOT NULL DEFAULT 0
   );
+
+  -- 玩家设置表（key-value）
+  CREATE TABLE IF NOT EXISTS player_settings (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    player_id TEXT NOT NULL,
+    setting_key TEXT NOT NULL,
+    setting_value TEXT NOT NULL DEFAULT '',
+    UNIQUE(player_id, setting_key)
+  );
   CREATE TABLE IF NOT EXISTS farm_plots (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     player_id TEXT NOT NULL,

@@ -86,6 +86,9 @@ const zh = {
   changeName: '点击修改昵称',
   avatarFrame: '头像框',
   noFrame: '不戴',
+  uiScale: '界面缩放',
+  uiScaleDesc: '调整UI元素大小比例(50%-200%)',
+  save: '保存',
 
   // 背包
   inventory: '背包',
@@ -252,6 +255,9 @@ const en = {
   changeName: 'Click to edit name',
   avatarFrame: 'Avatar Frame',
   noFrame: 'None',
+  uiScale: 'UI Scale',
+  uiScaleDesc: 'Adjust UI element size (50%-200%)',
+  save: 'Save',
 
   inventory: 'Inventory',
   itemTypes: 'items',

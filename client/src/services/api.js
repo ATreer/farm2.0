@@ -24,6 +24,10 @@ export const updatePlayer = (id, fields) => request('PUT', `/api/player/${id}`, 
 export const getAvatarFrames = (level) => request('GET', `/api/avatar-frames?level=${level}`);
 export const getAvatarFrameById = (id) => request('GET', `/api/avatar-frames/${id}`);
 
+// 玩家设置
+export const getPlayerSettings = (playerId) => request('GET', `/api/player/${playerId}/settings`);
+export const setPlayerSetting = (playerId, key, value) => request('PUT', `/api/player/${playerId}/settings`, { key, value });
+
 // 农田
 export const getFarmPlots = (playerId) => request('GET', `/api/farm/${playerId}`);
 export const plantCrop = (playerId, row, col, cropId) => request('POST', `/api/farm/${playerId}/plant`, { row, col, cropId });
