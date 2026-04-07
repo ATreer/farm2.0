@@ -171,6 +171,14 @@ function App() {
     }
   };
 
+  // 应用UI缩放到body（使用zoom避免影响fixed定位）
+  useEffect(() => {
+    document.body.style.zoom = uiScale;
+    return () => {
+      document.body.style.zoom = '';
+    };
+  }, [uiScale]);
+
   if (!playerId || !player) {
     return <StartScreen onStart={handleStart} lang={lang} />;
   }
@@ -180,14 +188,6 @@ function App() {
     { key: PAGES.inventory, icon: assets.nav.inventory, label: t('navInventory', lang) },
     { key: PAGES.shop, icon: assets.nav.shop, label: t('navShop', lang) },
   ];
-
-  // 应用UI缩放到body（使用zoom避免影响fixed定位）
-  useEffect(() => {
-    document.body.style.zoom = uiScale;
-    return () => {
-      document.body.style.zoom = '';
-    };
-  }, [uiScale]);
 
   return (
     <div className="app-container">
