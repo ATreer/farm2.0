@@ -106,6 +106,18 @@ app.get('/api/avatar-frames/:id', (req, res) => {
   }
 });
 
+// ==================== 升级 ====================
+
+// 手动升级接口（预留：后续可扩展领悟功法等逻辑）
+app.post('/api/player/:id/levelup', (req, res) => {
+  try {
+    const result = game.addExp(req.params.id, 0);
+    res.json({ success: true, data: result });
+  } catch (err) {
+    res.status(400).json({ success: false, error: err.message });
+  }
+});
+
 // ==================== 技能 ====================
 
 app.get('/api/player/:id/skills', (req, res) => {

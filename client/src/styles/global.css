@@ -941,15 +941,15 @@ body.farm-bg .crop-info-panel {
   height: 36px;
 }
 
-/* 生长阶段：放大，上移1/8农田高度 */
+/* 生长阶段：上移，幼苗大小 */
 .iso-plot-emoji.stage-growing {
   margin-left: 15%;
   margin-bottom: 77.5%;
 }
 
 .iso-plot-emoji.stage-growing .iso-plot-img {
-  width: 108px;
-  height: 108px;
+  width: 54px;
+  height: 54px;
 }
 
 .iso-plot-img {

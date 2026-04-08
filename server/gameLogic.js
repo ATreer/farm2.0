@@ -271,7 +271,10 @@ function addExp(id, amount) {
   // 检查是否升级
   const oldLevel = db.prepare('SELECT level FROM players WHERE id = ?').get(id).level;
   if (player.level > oldLevel) {
-    db.prepare('UPDATE players SET level = ? WHERE id = ?').run(player.level, id);
+    // 升级：更新等级 + 法力自动回满
+    const { maxMana } = getPlayerMana(id);
+    db.prepare('UPDATE players SET level = ?, mana = ? WHERE id = ?').run(player.level, maxMana, id);
+    return getPlayer(id);
   }
   return getPlayer(id);
 }

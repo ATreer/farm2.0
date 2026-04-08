@@ -79,6 +79,11 @@ export default function TopBar({ player, time, onSleep, onOpenSettings, lang, re
 
   const handleFrameChange = (frameId) => {
     api.updatePlayer(player.id, { avatar_frame: frameId || null }).then(() => {
+      if (frameId) {
+        api.getAvatarFrameById(frameId).then(f => setCurrentFrame(f || null)).catch(() => setCurrentFrame(null));
+      } else {
+        setCurrentFrame(null);
+      }
       refresh();
     }).catch(() => {});
   };
