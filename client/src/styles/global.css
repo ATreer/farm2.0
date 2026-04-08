@@ -952,13 +952,35 @@ body.farm-bg .crop-info-panel {
   height: 54px;
 }
 
-/* 大叶/开花/成熟阶段：正常大小 */
+/* 大叶阶段：正常大小，margin-bottom: 42% */
 .iso-plot-emoji.stage-growing {
+  margin-left: 15%;
+  margin-bottom: 42%;
+}
+
+.iso-plot-emoji.stage-growing .iso-plot-img {
+  width: 108px;
+  height: 108px;
+}
+
+/* 开花阶段：正常大小 */
+.iso-plot-emoji.stage-bloom {
   margin-left: 15%;
   margin-bottom: 77.5%;
 }
 
-.iso-plot-emoji.stage-growing .iso-plot-img {
+.iso-plot-emoji.stage-bloom .iso-plot-img {
+  width: 108px;
+  height: 108px;
+}
+
+/* 成熟阶段：margin-left: 48% */
+.iso-plot-emoji.stage-ready {
+  margin-left: 48%;
+  margin-bottom: 77.5%;
+}
+
+.iso-plot-emoji.stage-ready .iso-plot-img {
   width: 108px;
   height: 108px;
 }
