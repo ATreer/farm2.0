@@ -34,6 +34,18 @@ export default function IsoPlot({ plot, emoji, isAnimating, emitParticle, phaser
   const swayTweenRef = useRef(null);
   const swayImageRef = useRef(null);
   const [imgError, setImgError] = useState(false);
+  const [showDropSeed, setShowDropSeed] = useState(false);
+
+  // 播种动画：先显示种子粒下落，落地后切换为种子阶段图片
+  useEffect(() => {
+    if (isAnimating && crop_id) {
+      setShowDropSeed(true);
+      const timer = setTimeout(() => setShowDropSeed(false), 500);
+      return () => clearTimeout(timer);
+    } else {
+      setShowDropSeed(false);
+    }
+  }, [isAnimating, crop_id]);
 
   // 干旱逻辑：已种植、未浇水、未成熟，且伪随机概率 40% 触发
   const isDry = crop_id && !is_watered && !is_ready && hashStr(plot.id) < 0.4;
@@ -165,6 +177,19 @@ export default function IsoPlot({ plot, emoji, isAnimating, emitParticle, phaser
   // 渲染作物图标
   const renderCropIcon = () => {
     if (!crop_id) return null;
+
+    // 播种动画：显示种子粒下落
+    if (showDropSeed) {
+      return (
+        <span className="iso-plot-emoji stage-seed plot-seed-dropping">
+          <img
+            src="/seed_wheat.png"
+            alt="seed"
+            className="iso-plot-img iso-plot-img-seed-drop"
+          />
+        </span>
+      );
+    }
 
     const imgSrc = getStageImagePath(crop_id, growth_stage);
     // 阶段class

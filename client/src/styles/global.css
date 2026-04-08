@@ -898,14 +898,21 @@ body.farm-bg .crop-info-panel {
   filter: brightness(1.1) saturate(0.8);
 }
 
-/* 种子下落动画 */
-.iso-plot.plot-animating .iso-plot-emoji {
+/* 种子粒下落动画 */
+.plot-seed-dropping {
   animation: seedDrop 0.5s ease-in forwards;
 }
 
+.plot-seed-dropping .iso-plot-img-seed-drop {
+  width: 28px;
+  height: 28px;
+}
+
 @keyframes seedDrop {
-  0% { transform: skew(44deg, 0) translateY(-30px); opacity: 0; }
-  60% { transform: skew(44deg, 0) translateY(3px); opacity: 1; }
+  0% { transform: skew(44deg, 0) translateY(-40px); opacity: 0; }
+  40% { opacity: 1; }
+  70% { transform: skew(44deg, 0) translateY(4px); opacity: 1; }
+  85% { transform: skew(44deg, 0) translateY(-2px); opacity: 1; }
   100% { transform: skew(44deg, 0) translateY(0); opacity: 1; }
 }
 
@@ -937,7 +944,7 @@ body.farm-bg .crop-info-panel {
 /* 生长阶段：放大，上移1/8农田高度 */
 .iso-plot-emoji.stage-growing {
   margin-left: 15%;
-  margin-bottom: 52.5%;
+  margin-bottom: 65%;
 }
 
 .iso-plot-emoji.stage-growing .iso-plot-img {
