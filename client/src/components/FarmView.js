@@ -8,7 +8,7 @@ import useFarmData from '../hooks/useFarmData';
 import useFarmGrid from '../hooks/useFarmGrid';
 import useFarmActions from '../hooks/useFarmActions';
 
-export default function FarmView({ playerId, player, notify, refresh, emitParticle, lang }) {
+export default function FarmView({ playerId, player, notify, refresh, emitParticle, lang, phaserScene }) {
   const { plots, cropsMap, seeds, reload } = useFarmData(playerId, refresh);
   const { sortedPlots, getPlotGeometry, GRID_ROWS, GRID_COLS } = useFarmGrid(plots);
   const {
@@ -48,6 +48,7 @@ export default function FarmView({ playerId, player, notify, refresh, emitPartic
                   emoji={getPlotEmoji(plot)}
                   isAnimating={animatingPlots.has(plot.id)}
                   emitParticle={emitParticle}
+                  phaserScene={phaserScene}
                 />
               </div>
             );

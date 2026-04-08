@@ -921,54 +921,25 @@ body.farm-bg .crop-info-panel {
   /* 水平居中 */
   align-self: center;
   margin-bottom: 15%;
-  /* 非种子阶段需要固定尺寸以支持分层 */
-  width: 108px;
-  height: 108px;
 }
 
-/* 种子阶段：缩小，右移1/4农田宽度 */
+/* 种子阶段：缩小 */
 .iso-plot-emoji.stage-seed {
-  margin-left: 25%;
-  margin-bottom: 10%;
-  animation: none;
-  width: 36px;
-  height: 36px;
+  margin-bottom: 20%;
 }
 
 .iso-plot-emoji.stage-seed .iso-plot-img {
-  width: 36px;
-  height: 36px;
+  width: 72px;
+  height: 72px;
 }
 
-/* 幼苗阶段：在基础位置上右移+上移各1/4 */
-.iso-plot-emoji.stage-sprout {
-  margin-left: 25%;
-  margin-bottom: 40%;
-}
-
-/* 大叶阶段：在基础位置上右移+上移各1/4 */
+/* 生长阶段：放大 */
 .iso-plot-emoji.stage-growing {
-  margin-left: 25%;
+  margin-left: 15%;
   margin-bottom: 40%;
 }
 
-/* 开花阶段：在基础位置上右移+上移各1/4 */
-.iso-plot-emoji.stage-bloom {
-  margin-left: 25%;
-  margin-bottom: 40%;
-}
-
-/* 成熟阶段：在基础位置上右移+上移各1/4 */
-.iso-plot-emoji.stage-ready {
-  margin-left: 25%;
-  margin-bottom: 40%;
-}
-
-/* 非种子阶段图片大小 */
-.iso-plot-emoji.stage-sprout .iso-plot-img,
-.iso-plot-emoji.stage-growing .iso-plot-img,
-.iso-plot-emoji.stage-bloom .iso-plot-img,
-.iso-plot-emoji.stage-ready .iso-plot-img {
+.iso-plot-emoji.stage-growing .iso-plot-img {
   width: 108px;
   height: 108px;
 }
@@ -980,99 +951,9 @@ body.farm-bg .crop-info-panel {
   display: block;
 }
 
-/* 作物分层：上下两层叠放，实现上半部分摇晃 */
-.crop-layer {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  overflow: hidden;
-}
-
-.crop-layer-bottom {
-  /* 下半部分：显示图片下半 50%，不动 */
-  top: 50%;
-  width: 108px;
-  height: 54px;
-  clip-path: inset(0 0 0 0);
-}
-
-.crop-layer-bottom .iso-plot-img {
-  position: absolute;
-  top: -54px;
-  left: 0;
-}
-
-.crop-layer-top {
-  /* 上半部分：显示图片上半 50%，摇晃 */
-  top: 0;
-  width: 108px;
-  height: 54px;
-  animation: topSway 3s ease-in-out infinite;
-  transform-origin: bottom center;
-  clip-path: inset(0 0 0 0);
-}
-
-.crop-layer-top .iso-plot-img {
-  position: absolute;
-  top: 0;
-  left: 0;
-}
-
-/* 上半部分摇晃动画 */
-@keyframes topSway {
-  0%, 100% { transform: translateX(-50%) rotate(0deg); }
-  25% { transform: translateX(-50%) rotate(3deg); }
-  75% { transform: translateX(-50%) rotate(-3deg); }
-}
-
 .iso-plot-emoji-fallback {
   font-size: 24px;
   line-height: 1;
-}
-
-/* 分层摇晃动画：不同生长阶段不同幅度和速度 */
-.iso-plot-emoji.stage-sprout {
-  animation: plantSwayLight 4s ease-in-out infinite;
-  transform-origin: 50% 30%;
-}
-
-.iso-plot-emoji.stage-growing {
-  animation: plantSwayMedium 3.5s ease-in-out infinite;
-  transform-origin: 50% 35%;
-}
-
-.iso-plot-emoji.stage-bloom {
-  animation: plantSwayStrong 3s ease-in-out infinite;
-  transform-origin: 50% 40%;
-}
-
-.iso-plot-emoji.stage-ready {
-  animation: plantSwayHeavy 2.8s ease-in-out infinite;
-  transform-origin: 50% 45%;
-}
-
-@keyframes plantSwayLight {
-  0%, 100% { transform: skew(44deg, 0) rotate(0deg); }
-  25% { transform: skew(44deg, 0) rotate(1deg); }
-  75% { transform: skew(44deg, 0) rotate(-1deg); }
-}
-
-@keyframes plantSwayMedium {
-  0%, 100% { transform: skew(44deg, 0) rotate(0deg); }
-  25% { transform: skew(44deg, 0) rotate(2deg); }
-  75% { transform: skew(44deg, 0) rotate(-2deg); }
-}
-
-@keyframes plantSwayStrong {
-  0%, 100% { transform: skew(44deg, 0) rotate(0deg); }
-  25% { transform: skew(44deg, 0) rotate(3deg); }
-  75% { transform: skew(44deg, 0) rotate(-3deg); }
-}
-
-@keyframes plantSwayHeavy {
-  0%, 100% { transform: skew(44deg, 0) rotate(0deg); }
-  25% { transform: skew(44deg, 0) rotate(2.5deg); }
-  75% { transform: skew(44deg, 0) rotate(-2.5deg); }
 }
 
 .iso-plot-empty {

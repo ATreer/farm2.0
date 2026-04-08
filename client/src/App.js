@@ -265,6 +265,7 @@ function App() {
           notify={notify}
           refresh={refresh}
           emitParticle={emitParticle}
+          phaserScene={phaserRef.current?.scene}
         />
       )}
       {currentPage === PAGES.inventory && (
