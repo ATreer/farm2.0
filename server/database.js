@@ -102,6 +102,23 @@ db.exec(`
     PRIMARY KEY (player_id, technique_id)
   );
 
+  -- 土地品质定义表
+  CREATE TABLE IF NOT EXISTS land_qualities (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    yield_bonus_percent INTEGER NOT NULL DEFAULT 0,
+    min_level INTEGER NOT NULL DEFAULT 1,
+    sort_order INTEGER NOT NULL DEFAULT 0
+  );
+
+  -- 玩家土地品质表
+  CREATE TABLE IF NOT EXISTS player_land_quality (
+    player_id TEXT NOT NULL,
+    land_quality_id TEXT NOT NULL,
+    is_active INTEGER NOT NULL DEFAULT 0,
+    PRIMARY KEY (player_id, land_quality_id)
+  );
+
   CREATE TABLE IF NOT EXISTS farm_plots (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     player_id TEXT NOT NULL,
@@ -304,6 +321,19 @@ if (initTechLevels.cnt === 0) {
   ];
   const insertManyTL = db.transaction((items) => { for (const l of items) insertTL.run(...l); });
   insertManyTL(tLevels);
+}
+
+// 初始化土地品质数据
+const initLandQ = db.prepare('SELECT COUNT(*) as cnt FROM land_qualities').get();
+if (initLandQ.cnt === 0) {
+  const insertLQ = db.prepare(`INSERT INTO land_qualities (id, name, yield_bonus_percent, min_level, sort_order) VALUES (?, ?, ?, ?, ?)`);
+  const landQs = [
+    ['normal',  '普通土地', 0,   1,  1],
+    ['premium', '高级土地', 50,  10, 2],
+    ['epic',    '史诗土地', 100, 20, 3],
+  ];
+  const insertManyLQ = db.transaction((items) => { for (const l of items) insertLQ.run(...l); });
+  insertManyLQ(landQs);
 }
 
 module.exports = db;

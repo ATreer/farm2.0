@@ -362,6 +362,62 @@ function waterAllPlots(playerId) {
   return getFarmPlots(playerId);
 }
 
+// ==================== 收获加成系统 ====================
+
+/**
+ * 计算收获时的总加成
+ * 加成来源（可扩展）：
+ *   1. 技能加成（灵雨术 yield_bonus）
+ *   2. 功法加成（激活功法的产量加成）
+ *   3. 土地品质加成（当前土地品质的 yield_bonus_percent）
+ *   4. 其他加成（预留扩展）
+ *
+ * @param {string} playerId
+ * @param {object} plot - 农田格子数据
+ * @returns {{ baseGold, bonusDetail, totalGold, totalPercent }}
+ */
+function calculateHarvestYield(playerId, plot) {
+  const player = getPlayer(playerId);
+  const crop = db.prepare('SELECT * FROM crops WHERE id = ?').get(plot.crop_id);
+  if (!crop) return { baseGold: 0, bonusDetail: [], totalGold: 0, totalPercent: 0 };
+
+  const baseGold = crop.sell_price;
+  const bonusDetail = [];
+
+  // 1. 技能加成（灵雨术 yield_bonus）
+  if (plot.yield_bonus) {
+    const bonusExp = expForLevel(player.level);
+    const skillPercent = Math.floor(plot.yield_bonus * bonusExp / 100);
+    bonusDetail.push({ type: 'skill', name: '灵雨术', percent: skillPercent });
+  }
+
+  // 2. 功法加成（激活功法的产量加成 - 预留，当前清心决只加法力不加产量）
+  // 后续新增功法可在此添加，例如：
+  // const activeTech = db.prepare(`SELECT t.id, tl.yield_bonus_percent FROM player_techniques pt JOIN techniques t ON pt.technique_id = t.id JOIN technique_levels tl ON pt.technique_id = tl.technique_id AND pt.level = tl.level WHERE pt.player_id = ? AND pt.is_active = 1`).all(playerId);
+  // for (const tech of activeTech) { if (tech.yield_bonus_percent > 0) bonusDetail.push({ type: 'technique', name: tech.name, percent: tech.yield_bonus_percent }); }
+
+  // 3. 土地品质加成
+  const landQ = db.prepare(`
+    SELECT lq.yield_bonus_percent, lq.name
+    FROM player_land_quality plq
+    JOIN land_qualities lq ON plq.land_quality_id = lq.id
+    WHERE plq.player_id = ? AND plq.is_active = 1
+  `).get(playerId);
+  if (landQ && landQ.yield_bonus_percent > 0) {
+    bonusDetail.push({ type: 'land', name: landQ.name, percent: landQ.yield_bonus_percent });
+  }
+
+  // 4. 其他加成（预留扩展点）
+  // 例如：节日活动、buff、装备等
+  // bonusDetail.push({ type: 'event', name: '春收节', percent: 20 });
+
+  // 汇总：所有加成百分比相加
+  const totalPercent = bonusDetail.reduce((sum, b) => sum + b.percent, 0);
+  const totalGold = Math.floor(baseGold * (1 + totalPercent / 100));
+
+  return { baseGold, bonusDetail, totalGold, totalPercent };
+}
+
 function harvestPlot(playerId, rowIdx, colIdx) {
   const plot = db.prepare(
     'SELECT * FROM farm_plots WHERE player_id = ? AND row_idx = ? AND col_idx = ?'
@@ -393,20 +449,16 @@ function harvestPlot(playerId, rowIdx, colIdx) {
 
   // 增加经验和金币
   addExp(playerId, crop.exp_reward);
-  // 产量加成（灵雨术效果）
-  let goldReward = crop.sell_price;
-  if (plot.yield_bonus) {
-    const player = getPlayer(playerId);
-    const bonusExp = expForLevel(player.level);
-    const bonusPercent = plot.yield_bonus / 100;
-    goldReward = Math.floor(crop.sell_price * (1 + bonusPercent * bonusExp));
-  }
-  addGold(playerId, goldReward);
+
+  // 计算收获加成
+  const yieldResult = calculateHarvestYield(playerId, plot);
+  addGold(playerId, yieldResult.totalGold);
 
   return {
     plots: getFarmPlots(playerId),
     player: getPlayer(playerId),
     harvested: crop,
+    yield: yieldResult,
   };
 }
 
@@ -420,6 +472,7 @@ function harvestAll(playerId) {
   let totalGold = 0;
   let totalExp = 0;
   const harvested = [];
+  const allYields = [];
 
   const harvestAllTx = db.transaction(() => {
     for (const plot of plots) {
@@ -441,18 +494,12 @@ function harvestAll(playerId) {
         WHERE id = ?
       `).run(plot.id);
 
-      // 产量加成（灵雨术效果）
-      let goldReward = crop.sell_price;
-      if (plot.yield_bonus) {
-        const player = getPlayer(playerId);
-        const bonusExp = expForLevel(player.level);
-        const bonusPercent = plot.yield_bonus / 100;
-        goldReward = Math.floor(crop.sell_price * (1 + bonusPercent * bonusExp));
-      }
-
-      totalGold += goldReward;
+      // 计算收获加成
+      const yieldResult = calculateHarvestYield(playerId, plot);
+      totalGold += yieldResult.totalGold;
       totalExp += crop.exp_reward;
       harvested.push(crop);
+      allYields.push(yieldResult);
     }
   });
   harvestAllTx();
@@ -465,6 +512,7 @@ function harvestAll(playerId) {
     harvested,
     totalGold,
     totalExp,
+    yields: allYields,
   };
 }
 
@@ -815,6 +863,7 @@ module.exports = {
   plantCrop,
   waterPlot,
   waterAllPlots,
+  calculateHarvestYield,
   harvestPlot,
   harvestAll,
   updateGrowth,
