@@ -336,4 +336,17 @@ if (initLandQ.cnt === 0) {
   insertManyLQ(landQs);
 }
 
+// 迁移：为所有已有玩家补齐农田格子到 4×8
+const migrateFarmPlots = db.prepare(`
+  INSERT OR IGNORE INTO farm_plots (player_id, row_idx, col_idx)
+  SELECT p.id, r.r, c.c
+  FROM players p
+  CROSS JOIN (SELECT 0 as r UNION SELECT 1 UNION SELECT 2 UNION SELECT 3) r
+  CROSS JOIN (SELECT 0 as c UNION SELECT 1 UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5 UNION SELECT 6 UNION SELECT 7) c
+`);
+try { migrateFarmPlots.run(); } catch {}
+
+// 迁移：更新所有玩家的 max_farm_rows/max_farm_cols 为 4/8
+try { db.prepare('UPDATE players SET max_farm_rows = 4, max_farm_cols = 8 WHERE max_farm_rows < 4 OR max_farm_cols < 8').run(); } catch {}
+
 module.exports = db;

@@ -17,8 +17,8 @@ const config = {
   // ==================== 农田初始值 ====================
   farm: {
     initialLevel: 1,
-    initialRows: 3,
-    initialCols: 3,
+    initialRows: 4,
+    initialCols: 8,
   },
 
   // ==================== 经验公式 ====================
