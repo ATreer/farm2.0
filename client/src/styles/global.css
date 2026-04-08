@@ -935,28 +935,28 @@ body.farm-bg .crop-info-panel {
   height: 36px;
 }
 
-/* 幼苗阶段：右移1/3，上移1/3 */
+/* 幼苗阶段：在基础位置上右移+上移各1/4 */
 .iso-plot-emoji.stage-sprout {
-  margin-left: 33%;
-  margin-bottom: 33%;
+  margin-left: 25%;
+  margin-bottom: 40%;
 }
 
-/* 大叶阶段：右移1/3，上移1/3 */
+/* 大叶阶段：在基础位置上右移+上移各1/4 */
 .iso-plot-emoji.stage-growing {
-  margin-left: 33%;
-  margin-bottom: 33%;
+  margin-left: 25%;
+  margin-bottom: 40%;
 }
 
-/* 开花阶段：右移1/3，上移1/3 */
+/* 开花阶段：在基础位置上右移+上移各1/4 */
 .iso-plot-emoji.stage-bloom {
-  margin-left: 33%;
-  margin-bottom: 33%;
+  margin-left: 25%;
+  margin-bottom: 40%;
 }
 
-/* 成熟阶段：右移1/3，上移1/3 */
+/* 成熟阶段：在基础位置上右移+上移各1/4 */
 .iso-plot-emoji.stage-ready {
-  margin-left: 33%;
-  margin-bottom: 33%;
+  margin-left: 25%;
+  margin-bottom: 40%;
 }
 
 /* 非种子阶段图片大小 */
