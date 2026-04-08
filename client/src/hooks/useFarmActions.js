@@ -7,7 +7,7 @@ const STAGE_EMOJIS = assets.crop.stageDefault;
 
 /**
  * 农田操作 hook
- * 管理种植、浇水、收获、拖拽等交互逻辑
+ * 管理种植、灵雨术、收获、拖拽等交互逻辑
  */
 export default function useFarmActions(playerId, cropsMap, emitParticle, notify, reload, lang) {
   const [selectedPlot, setSelectedPlot] = useState(null);
@@ -66,9 +66,11 @@ export default function useFarmActions(playerId, cropsMap, emitParticle, notify,
         notify(e.message, 'error');
       }
     } else if (!plot.is_watered) {
+      // 施展灵雨术（替代浇水）
       try {
-        await api.waterPlot(playerId, plot.row_idx, plot.col_idx);
-        notify(`${assets.notify.water} ${t('waterSuccess', lang)}`, 'success');
+        const result = await api.castSpiritRain(playerId, plot.row_idx, plot.col_idx);
+        const bonusText = result.yieldBonus > 0 ? ` (+${result.yieldBonus}%)` : '';
+        notify(`${assets.notify.water} ${t('spiritRainSuccess', lang)}${bonusText}`, 'success');
         emitParticle('water', event);
         triggerAnimation(plot.id);
         reload();
@@ -103,12 +105,12 @@ export default function useFarmActions(playerId, cropsMap, emitParticle, notify,
     if (seedId) await plantToPlot(seedId, plot, e);
   }, [plantToPlot]);
 
-  // 一键操作
-  const handleWaterAll = useCallback(async () => {
+  // 大型灵雨术（替代全部浇水）
+  const handleGrandSpiritRain = useCallback(async () => {
     try {
-      const result = await api.waterAllPlots(playerId);
-      // result 是数组
-      notify(`${assets.notify.water} ${t('waterAll', lang)}!`, 'success');
+      const result = await api.castGrandSpiritRain(playerId);
+      const bonusText = result.yieldBonus > 0 ? ` (+${result.yieldBonus}%)` : '';
+      notify(`${t('grandSpiritRainSuccess', lang, { count: result.count })}${bonusText}`, 'success');
       reload();
     } catch (e) {
       notify(e.message, 'error');
@@ -151,7 +153,7 @@ export default function useFarmActions(playerId, cropsMap, emitParticle, notify,
     setSeedPanelVisible,
     handlePlotClick, handleSeedPlant,
     handleDragOver, handleDragLeave, handleDrop,
-    handleWaterAll, handleHarvestAll,
+    handleGrandSpiritRain, handleHarvestAll,
     getPlotEmoji,
     clearSelection,
   };

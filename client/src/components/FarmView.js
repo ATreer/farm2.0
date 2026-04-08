@@ -17,7 +17,7 @@ export default function FarmView({ playerId, player, notify, refresh, emitPartic
     setSeedPanelVisible,
     handlePlotClick, handleSeedPlant,
     handleDragOver, handleDragLeave, handleDrop,
-    handleWaterAll, handleHarvestAll, getPlotEmoji,
+    handleGrandSpiritRain, handleHarvestAll, getPlotEmoji,
     clearSelection,
   } = useFarmActions(playerId, cropsMap, emitParticle, notify, reload, lang);
 
@@ -57,7 +57,7 @@ export default function FarmView({ playerId, player, notify, refresh, emitPartic
 
       {/* 快捷操作 */}
       <div className="iso-quick-actions">
-        <button className="btn btn-blue btn-small" onClick={handleWaterAll}>{assets.btn.waterAll} {t('waterAll', lang)}</button>
+        <button className="btn btn-blue btn-small" onClick={handleGrandSpiritRain}>🌧️ {t('grandSpiritRain', lang)}</button>
         <button className="btn btn-gold btn-small" onClick={handleHarvestAll}>{assets.btn.harvestAll} {t('harvestAll', lang)}</button>
       </div>
 

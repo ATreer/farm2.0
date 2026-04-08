@@ -402,6 +402,34 @@ body.farm-bg .crop-info-panel {
   color: var(--text-dim);
 }
 
+.topbar-mana {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 9px;
+  color: var(--text-dim);
+}
+
+.topbar-mana-bar {
+  width: 50px;
+  height: 4px;
+  background: rgba(0,0,0,0.4);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.topbar-mana-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #2196f3, #64b5f6);
+  border-radius: 2px;
+  transition: width 0.3s;
+}
+
+.topbar-mana-text {
+  font-size: 8px;
+  color: var(--text-dim);
+}
+
 .topbar-time {
   display: flex;
   align-items: center;
@@ -1736,6 +1764,52 @@ body.farm-bg .crop-info-panel {
   width: 14px;
   height: 14px;
   cursor: pointer;
+}
+
+/* 功法/技能卡片 */
+.technique-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.technique-card {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 6px;
+  padding: 10px;
+}
+
+.technique-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.technique-name {
+  font-family: var(--pixel-font);
+  font-size: 13px;
+  color: var(--gold);
+}
+
+.technique-lv {
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.technique-stats {
+  display: flex;
+  gap: 12px;
+  font-size: 10px;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.technique-max {
+  font-size: 11px;
+  color: #4caf50;
 }
 
 /* ==================== 响应式 ==================== */

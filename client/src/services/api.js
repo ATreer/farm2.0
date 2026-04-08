@@ -37,6 +37,18 @@ export const harvestPlot = (playerId, row, col) => request('POST', `/api/farm/${
 export const harvestAll = (playerId) => request('POST', `/api/farm/${playerId}/harvest-all`);
 export const useTool = (playerId, toolId, row, col) => request('POST', `/api/farm/${playerId}/use-tool`, { toolId, row, col });
 
+// 技能
+export const getPlayerSkills = (playerId) => request('GET', `/api/player/${playerId}/skills`);
+export const castSpiritRain = (playerId, rowIdx, colIdx) => request('POST', `/api/player/${playerId}/spirit-rain`, { rowIdx, colIdx });
+export const castGrandSpiritRain = (playerId) => request('POST', `/api/player/${playerId}/grand-spirit-rain`);
+
+// 功法
+export const getPlayerTechniques = (playerId) => request('GET', `/api/player/${playerId}/techniques`);
+export const upgradeTechnique = (playerId, techId) => request('POST', `/api/player/${playerId}/techniques/${techId}/upgrade`);
+
+// 法力
+export const getPlayerMana = (playerId) => request('GET', `/api/player/${playerId}/mana`);
+
 // 背包
 export const getInventory = (playerId) => request('GET', `/api/inventory/${playerId}`);
 

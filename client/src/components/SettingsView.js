@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { t } from '../services/i18n';
 import assets from '../config/assets';
 import * as api from '../services/api';
@@ -15,6 +15,16 @@ export default function SettingsView({ lang, setLang, notify, playerId, uiScale,
   const [localScale, setLocalScale] = useState(uiScale);
   const [localTargets, setLocalTargets] = useState(scaleTargets);
   const [saving, setSaving] = useState(false);
+  const [techniques, setTechniques] = useState([]);
+  const [skills, setSkills] = useState([]);
+  const [upgrading, setUpgrading] = useState(false);
+
+  // 加载功法和技能数据
+  useEffect(() => {
+    if (!playerId) return;
+    api.getPlayerTechniques(playerId).then(list => setTechniques(list || [])).catch(() => {});
+    api.getPlayerSkills(playerId).then(list => setSkills(list || [])).catch(() => {});
+  }, [playerId, upgrading]);
 
   const handleLangChange = (newLang) => {
     setLang(newLang);
@@ -53,6 +63,17 @@ export default function SettingsView({ lang, setLang, notify, playerId, uiScale,
       localStorage.removeItem('farmLang');
       window.location.reload();
     }
+  };
+
+  const handleUpgradeTechnique = async (techId) => {
+    setUpgrading(true);
+    try {
+      await api.upgradeTechnique(playerId, techId);
+      notify(lang === 'zh' ? '功法升级成功！' : 'Technique upgraded!', 'success');
+    } catch (e) {
+      notify(e.message, 'error');
+    }
+    setUpgrading(false);
   };
 
   return (
@@ -140,6 +161,60 @@ export default function SettingsView({ lang, setLang, notify, playerId, uiScale,
             <div className="milestone-item">🏅 Lv.5 → {t('milestone5', lang)}</div>
             <div className="milestone-item">🏅 Lv.10 → {t('milestone10', lang)}</div>
             <div className="milestone-item">🏅 Lv.15 → {t('milestone15', lang)}</div>
+          </div>
+        </div>
+
+        {/* 功法 */}
+        <div className="settings-item">
+          <div className="settings-info">
+            <div className="settings-label">🧘 {t('technique', lang)}</div>
+            <div className="settings-desc">{t('techniqueUpgrade', lang)}</div>
+          </div>
+          <div className="technique-list">
+            {techniques.map(tech => (
+              <div key={tech.technique_id} className="technique-card">
+                <div className="technique-header">
+                  <span className="technique-name">{tech.technique_name}</span>
+                  <span className="technique-lv">Lv.{tech.level}/{tech.max_level}</span>
+                </div>
+                <div className="technique-stats">
+                  <span>💧 {t('manaBonus', lang)}: +{tech.mana_bonus_percent}%</span>
+                  <span>📖 {t('expRequired', lang)}: {tech.next_level_exp || '-'}</span>
+                  <span>⭐ EXP: {tech.exp}</span>
+                </div>
+                {tech.level < tech.max_level && (
+                  <button className="btn btn-small btn-gold" onClick={() => handleUpgradeTechnique(tech.technique_id)} disabled={upgrading}>
+                    {upgrading ? '...' : `⬆ ${t('techniqueUpgrade', lang)}`}
+                  </button>
+                )}
+                {tech.level >= tech.max_level && (
+                  <span className="technique-max">✅ {lang === 'zh' ? '已满级' : 'Max Level'}</span>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* 技能 */}
+        <div className="settings-item">
+          <div className="settings-info">
+            <div className="settings-label">⚡ {t('spiritRain', lang)}</div>
+            <div className="settings-desc">{lang === 'zh' ? '灵雨术等级与效果' : 'Spirit Rain level & effects'}</div>
+          </div>
+          <div className="technique-list">
+            {skills.map(skill => (
+              <div key={skill.skill_id} className="technique-card">
+                <div className="technique-header">
+                  <span className="technique-name">{skill.skill_name}</span>
+                  <span className="technique-lv">Lv.{skill.level}/{skill.max_level}</span>
+                </div>
+                <div className="technique-stats">
+                  <span>💧 {t('mana', lang)}: {skill.mana_cost}</span>
+                  <span>🌾 {lang === 'zh' ? '产量加成' : 'Yield Bonus'}: +{skill.yield_bonus}%</span>
+                  <span>📖 EXP: {skill.exp}</span>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
 

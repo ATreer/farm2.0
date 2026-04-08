@@ -11,6 +11,7 @@ export default function TopBar({ player, time, onSleep, onOpenSettings, lang, re
   const [newName, setNewName] = useState('');
   const [avatarFrames, setAvatarFrames] = useState([]);
   const [currentFrame, setCurrentFrame] = useState(null);
+  const [manaInfo, setManaInfo] = useState({ mana: 0, maxMana: 50 });
   const profileRef = useRef(null);
 
   if (!player) return null;
@@ -37,7 +38,11 @@ export default function TopBar({ player, time, onSleep, onOpenSettings, lang, re
     } else {
       setCurrentFrame(null);
     }
-  }, [player?.level, player?.avatar_frame]);
+    // 获取法力信息
+    api.getPlayerMana(player.id).then(m => {
+      setManaInfo(m || { mana: 0, maxMana: 50 });
+    }).catch(() => {});
+  }, [player?.level, player?.avatar_frame, player?.mana]);
 
   // 点击外部关闭悬浮框
   useEffect(() => {
@@ -110,6 +115,13 @@ export default function TopBar({ player, time, onSleep, onOpenSettings, lang, re
               <div className="topbar-exp-fill" style={{ width: `${expPercent}%` }} />
             </div>
             <span className="topbar-exp-text">{player.currentExp}/{player.nextLevelExp}</span>
+          </div>
+          <div className="topbar-mana">
+            <span>💧</span>
+            <div className="topbar-mana-bar">
+              <div className="topbar-mana-fill" style={{ width: `${manaInfo.maxMana > 0 ? (manaInfo.mana / manaInfo.maxMana * 100) : 0}%` }} />
+            </div>
+            <span className="topbar-mana-text">{manaInfo.mana}/{manaInfo.maxMana}</span>
           </div>
         </div>
       </div>

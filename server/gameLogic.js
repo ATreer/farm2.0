@@ -43,6 +43,11 @@ function createPlayer(name = '农夫') {
   });
   initFarm();
 
+  // 初始化灵雨术技能
+  db.prepare(`INSERT OR IGNORE INTO player_skills (player_id, skill_id, level, exp) VALUES (?, 'spirit_rain', 1, 0)`).run(id);
+  // 初始化清心决功法（默认激活）
+  db.prepare(`INSERT OR IGNORE INTO player_techniques (player_id, technique_id, level, exp, is_active) VALUES (?, 'qingxin', 1, 0, 1)`).run(id);
+
   return getPlayer(id);
 }
 
@@ -70,6 +75,169 @@ function updatePlayer(id, fields) {
     db.prepare(`UPDATE players SET ${key} = ? WHERE id = ?`).run(fields[key], id);
   }
   return getPlayer(id);
+}
+
+// ==================== 法力系统 ====================
+
+function getPlayerMana(playerId) {
+  const player = getPlayer(playerId);
+  if (!player) return { mana: 0, maxMana: 0 };
+  // 基础法力 = 50 + level * 10
+  const baseMana = 50 + player.level * 10;
+  // 获取激活功法的法力加成
+  const tech = db.prepare(`
+    SELECT tl.mana_bonus_percent FROM player_techniques pt
+    JOIN technique_levels tl ON pt.technique_id = tl.technique_id AND pt.level = tl.level
+    WHERE pt.player_id = ? AND pt.is_active = 1
+  `).get(playerId);
+  const bonus = tech ? tech.mana_bonus_percent : 0;
+  const maxMana = Math.floor(baseMana * (1 + bonus / 100));
+  return { mana: player.mana || 0, maxMana };
+}
+
+function spendMana(playerId, amount) {
+  const { mana } = getPlayerMana(playerId);
+  if (mana < amount) throw new Error('法力不足');
+  db.prepare('UPDATE players SET mana = mana - ? WHERE id = ?').run(amount, playerId);
+  return getPlayer(playerId);
+}
+
+function restoreMana(playerId, amount) {
+  const { maxMana } = getPlayerMana(playerId);
+  db.prepare('UPDATE players SET mana = MIN(mana + ?, ?) WHERE id = ?').run(amount, maxMana, playerId);
+  return getPlayer(playerId);
+}
+
+// ==================== 灵雨术 ====================
+
+function castSpiritRain(playerId, rowIdx, colIdx) {
+  const plot = db.prepare(
+    'SELECT * FROM farm_plots WHERE player_id = ? AND row_idx = ? AND col_idx = ?'
+  ).get(playerId, rowIdx, colIdx);
+  if (!plot) throw new Error('格子不存在');
+  if (!plot.crop_id) throw new Error('该格子没有作物');
+  if (plot.is_ready) throw new Error('作物已成熟');
+
+  // 获取灵雨术等级
+  const ps = db.prepare('SELECT * FROM player_skills WHERE player_id = ? AND skill_id = ?').get(playerId, 'spirit_rain');
+  const skillLevel = ps ? ps.level : 1;
+  const sl = db.prepare('SELECT * FROM skill_levels WHERE skill_id = ? AND level = ?').get('spirit_rain', skillLevel);
+  if (!sl) throw new Error('技能数据异常');
+
+  // 消耗法力
+  spendMana(playerId, sl.mana_cost);
+
+  // 浇水 + 记录产量加成
+  const now = new Date().toISOString();
+  db.prepare(`
+    UPDATE farm_plots SET is_watered = 1, watered_at = ?, yield_bonus = ? WHERE player_id = ? AND row_idx = ? AND col_idx = ?
+  `).run(now, sl.yield_bonus, playerId, rowIdx, colIdx);
+
+  return {
+    plots: getFarmPlots(playerId),
+    player: getPlayer(playerId),
+    yieldBonus: sl.yield_bonus,
+  };
+}
+
+function castGrandSpiritRain(playerId) {
+  // 获取灵雨术等级
+  const ps = db.prepare('SELECT * FROM player_skills WHERE player_id = ? AND skill_id = ?').get(playerId, 'spirit_rain');
+  const skillLevel = ps ? ps.level : 1;
+  const sl = db.prepare('SELECT * FROM skill_levels WHERE skill_id = ? AND level = ?').get('spirit_rain', skillLevel);
+  if (!sl) throw new Error('技能数据异常');
+
+  // 大型灵雨术：法力消耗 = 32 * 单次 * 0.8
+  const totalCost = Math.floor(32 * sl.mana_cost * 0.8);
+  spendMana(playerId, totalCost);
+
+  // 获取所有需要浇水的格子
+  const plots = db.prepare(
+    'SELECT * FROM farm_plots WHERE player_id = ? AND crop_id IS NOT NULL AND is_ready = 0'
+  ).all(playerId);
+
+  if (plots.length === 0) throw new Error('没有需要施展灵雨术的作物');
+
+  const now = new Date().toISOString();
+  const castAll = db.transaction(() => {
+    for (const p of plots) {
+      db.prepare(`
+        UPDATE farm_plots SET is_watered = 1, watered_at = ?, yield_bonus = ? WHERE id = ?
+      `).run(now, sl.yield_bonus, p.id);
+    }
+  });
+  castAll();
+
+  return {
+    plots: getFarmPlots(playerId),
+    player: getPlayer(playerId),
+    count: plots.length,
+    yieldBonus: sl.yield_bonus,
+    manaCost: totalCost,
+  };
+}
+
+// ==================== 技能系统 ====================
+
+function getPlayerSkills(playerId) {
+  return db.prepare(`
+    SELECT ps.*, s.name as skill_name, s.type, s.max_level,
+      sl.mana_cost, sl.yield_bonus, sl.exp_required as next_level_exp
+    FROM player_skills ps
+    JOIN skills s ON ps.skill_id = s.id
+    LEFT JOIN skill_levels sl ON ps.skill_id = sl.skill_id AND ps.level = sl.level
+    WHERE ps.player_id = ?
+  `).all(playerId);
+}
+
+function getPlayerSkillLevel(playerId, skillId) {
+  const ps = db.prepare('SELECT * FROM player_skills WHERE player_id = ? AND skill_id = ?').get(playerId, skillId);
+  return ps ? ps.level : 0;
+}
+
+// ==================== 功法系统 ====================
+
+function getPlayerTechniques(playerId) {
+  return db.prepare(`
+    SELECT pt.*, t.name as technique_name, t.max_level,
+      tl.mana_bonus_percent, tl.exp_required as next_level_exp
+    FROM player_techniques pt
+    JOIN techniques t ON pt.technique_id = t.id
+    LEFT JOIN technique_levels tl ON pt.technique_id = tl.technique_id AND pt.level = tl.level
+    WHERE pt.player_id = ?
+  `).all(playerId);
+}
+
+function upgradeTechnique(playerId, techniqueId) {
+  const pt = db.prepare('SELECT * FROM player_techniques WHERE player_id = ? AND technique_id = ?').get(playerId, techniqueId);
+  if (!pt) throw new Error('未学习该功法');
+
+  const tech = db.prepare('SELECT * FROM techniques WHERE id = ?').get(techniqueId);
+  if (!tech) throw new Error('功法不存在');
+  if (pt.level >= tech.max_level) throw new Error('功法已满级');
+
+  const nextLevel = pt.level + 1;
+  const tl = db.prepare('SELECT * FROM technique_levels WHERE technique_id = ? AND level = ?').get(techniqueId, nextLevel);
+  if (!tl) throw new Error('功法等级数据异常');
+  if (pt.exp < tl.exp_required) throw new Error(`功法经验不足，需要 ${tl.exp_required} 经验`);
+
+  db.prepare('UPDATE player_techniques SET level = ?, exp = exp - ? WHERE player_id = ? AND technique_id = ?')
+    .run(nextLevel, tl.exp_required, playerId, techniqueId);
+
+  // 更新法力上限
+  recalcMana(playerId);
+
+  return getPlayerTechniques(playerId);
+}
+
+function addTechniqueExp(playerId, techniqueId, amount) {
+  db.prepare('UPDATE player_techniques SET exp = exp + ? WHERE player_id = ? AND technique_id = ?')
+    .run(amount, playerId, techniqueId);
+}
+
+function recalcMana(playerId) {
+  const { maxMana } = getPlayerMana(playerId);
+  db.prepare('UPDATE players SET max_mana = ? WHERE id = ?').run(maxMana, playerId);
 }
 
 function getAvatarFrames(level) {
@@ -225,7 +393,15 @@ function harvestPlot(playerId, rowIdx, colIdx) {
 
   // 增加经验和金币
   addExp(playerId, crop.exp_reward);
-  addGold(playerId, crop.sell_price);
+  // 产量加成（灵雨术效果）
+  let goldReward = crop.sell_price;
+  if (plot.yield_bonus) {
+    const player = getPlayer(playerId);
+    const bonusExp = expForLevel(player.level);
+    const bonusPercent = plot.yield_bonus / 100;
+    goldReward = Math.floor(crop.sell_price * (1 + bonusPercent * bonusExp));
+  }
+  addGold(playerId, goldReward);
 
   return {
     plots: getFarmPlots(playerId),
@@ -261,11 +437,20 @@ function harvestAll(playerId) {
       }
 
       db.prepare(`
-        UPDATE farm_plots SET crop_id = NULL, planted_at = NULL, watered_at = NULL, growth_stage = 0, is_watered = 0, is_ready = 0
+        UPDATE farm_plots SET crop_id = NULL, planted_at = NULL, watered_at = NULL, growth_stage = 0, is_watered = 0, is_ready = 0, yield_bonus = 0
         WHERE id = ?
       `).run(plot.id);
 
-      totalGold += crop.sell_price;
+      // 产量加成（灵雨术效果）
+      let goldReward = crop.sell_price;
+      if (plot.yield_bonus) {
+        const player = getPlayer(playerId);
+        const bonusExp = expForLevel(player.level);
+        const bonusPercent = plot.yield_bonus / 100;
+        goldReward = Math.floor(crop.sell_price * (1 + bonusPercent * bonusExp));
+      }
+
+      totalGold += goldReward;
       totalExp += crop.exp_reward;
       harvested.push(crop);
     }
@@ -506,6 +691,11 @@ function advanceTime(minutes = 10) {
   const oldDay = time.day;
   if (newDay > oldDay) {
     db.prepare('UPDATE farm_plots SET is_watered = 0 WHERE is_watered = 1').run();
+    // 每日自动获得1点功法经验
+    const allPlayers = db.prepare('SELECT DISTINCT player_id FROM player_techniques').all();
+    for (const p of allPlayers) {
+      addTechniqueExp(p.player_id, 'qingxin', 1);
+    }
   }
 
   // 更新作物生长
@@ -642,4 +832,12 @@ module.exports = {
   getAllCrops,
   setPlotStage,
   expForLevel,
+  castSpiritRain,
+  castGrandSpiritRain,
+  getPlayerSkills,
+  getPlayerTechniques,
+  upgradeTechnique,
+  getPlayerMana,
+  restoreMana,
+  addTechniqueExp,
 };

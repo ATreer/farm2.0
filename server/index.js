@@ -106,6 +106,67 @@ app.get('/api/avatar-frames/:id', (req, res) => {
   }
 });
 
+// ==================== 技能 ====================
+
+app.get('/api/player/:id/skills', (req, res) => {
+  try {
+    const skills = game.getPlayerSkills(req.params.id);
+    res.json({ success: true, data: skills });
+  } catch (err) {
+    res.status(400).json({ success: false, error: err.message });
+  }
+});
+
+app.post('/api/player/:id/spirit-rain', (req, res) => {
+  try {
+    const { rowIdx, colIdx } = req.body;
+    const result = game.castSpiritRain(req.params.id, rowIdx, colIdx);
+    res.json({ success: true, data: result });
+  } catch (err) {
+    res.status(400).json({ success: false, error: err.message });
+  }
+});
+
+app.post('/api/player/:id/grand-spirit-rain', (req, res) => {
+  try {
+    const result = game.castGrandSpiritRain(req.params.id);
+    res.json({ success: true, data: result });
+  } catch (err) {
+    res.status(400).json({ success: false, error: err.message });
+  }
+});
+
+// ==================== 功法 ====================
+
+app.get('/api/player/:id/techniques', (req, res) => {
+  try {
+    const techs = game.getPlayerTechniques(req.params.id);
+    res.json({ success: true, data: techs });
+  } catch (err) {
+    res.status(400).json({ success: false, error: err.message });
+  }
+});
+
+app.post('/api/player/:id/techniques/:techId/upgrade', (req, res) => {
+  try {
+    const result = game.upgradeTechnique(req.params.id, req.params.techId);
+    res.json({ success: true, data: result });
+  } catch (err) {
+    res.status(400).json({ success: false, error: err.message });
+  }
+});
+
+// ==================== 法力 ====================
+
+app.get('/api/player/:id/mana', (req, res) => {
+  try {
+    const mana = game.getPlayerMana(req.params.id);
+    res.json({ success: true, data: mana });
+  } catch (err) {
+    res.status(400).json({ success: false, error: err.message });
+  }
+});
+
 // ==================== 农田 ====================
 
 app.get('/api/farm/:playerId', (req, res) => {

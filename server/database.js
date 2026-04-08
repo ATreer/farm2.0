@@ -22,7 +22,9 @@ db.exec(`
     max_farm_cols INTEGER NOT NULL DEFAULT ${config.farm.initialCols},
     created_at TEXT DEFAULT (datetime('now')),
     avatar_index INTEGER NOT NULL DEFAULT 0,
-    avatar_frame TEXT DEFAULT NULL
+    avatar_frame TEXT DEFAULT NULL,
+    mana INTEGER NOT NULL DEFAULT 50,
+    max_mana INTEGER NOT NULL DEFAULT 50
   );
 
   -- 头像框定义表
@@ -42,6 +44,64 @@ db.exec(`
     setting_value TEXT NOT NULL DEFAULT '',
     UNIQUE(player_id, setting_key)
   );
+  -- 技能定义表
+  CREATE TABLE IF NOT EXISTS skills (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    type TEXT NOT NULL DEFAULT 'active',
+    max_level INTEGER NOT NULL DEFAULT 10,
+    sort_order INTEGER NOT NULL DEFAULT 0
+  );
+
+  -- 技能等级配置表（每级的效果值）
+  CREATE TABLE IF NOT EXISTS skill_levels (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    skill_id TEXT NOT NULL,
+    level INTEGER NOT NULL,
+    mana_cost INTEGER NOT NULL DEFAULT 0,
+    yield_bonus INTEGER NOT NULL DEFAULT 0,
+    exp_required INTEGER NOT NULL DEFAULT 0,
+    UNIQUE(skill_id, level)
+  );
+
+  -- 功法定义表
+  CREATE TABLE IF NOT EXISTS techniques (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    max_level INTEGER NOT NULL DEFAULT 3,
+    mana_bonus_percent INTEGER NOT NULL DEFAULT 0,
+    sort_order INTEGER NOT NULL DEFAULT 0
+  );
+
+  -- 功法等级配置表
+  CREATE TABLE IF NOT EXISTS technique_levels (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    technique_id TEXT NOT NULL,
+    level INTEGER NOT NULL,
+    mana_bonus_percent INTEGER NOT NULL DEFAULT 0,
+    exp_required INTEGER NOT NULL DEFAULT 0,
+    UNIQUE(technique_id, level)
+  );
+
+  -- 玩家技能表
+  CREATE TABLE IF NOT EXISTS player_skills (
+    player_id TEXT NOT NULL,
+    skill_id TEXT NOT NULL,
+    level INTEGER NOT NULL DEFAULT 1,
+    exp INTEGER NOT NULL DEFAULT 0,
+    PRIMARY KEY (player_id, skill_id)
+  );
+
+  -- 玩家功法表
+  CREATE TABLE IF NOT EXISTS player_techniques (
+    player_id TEXT NOT NULL,
+    technique_id TEXT NOT NULL,
+    level INTEGER NOT NULL DEFAULT 1,
+    exp INTEGER NOT NULL DEFAULT 0,
+    is_active INTEGER NOT NULL DEFAULT 0,
+    PRIMARY KEY (player_id, technique_id)
+  );
+
   CREATE TABLE IF NOT EXISTS farm_plots (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     player_id TEXT NOT NULL,
@@ -126,6 +186,9 @@ try { db.exec(`ALTER TABLE crops ADD COLUMN season TEXT DEFAULT 'spring'`); } ca
 try { db.exec(`ALTER TABLE crops ADD COLUMN description TEXT DEFAULT ''`); } catch(e) {}
 try { db.exec(`ALTER TABLE players ADD COLUMN avatar_index INTEGER DEFAULT 0`); } catch(e) {}
 try { db.exec(`ALTER TABLE players ADD COLUMN avatar_frame TEXT DEFAULT NULL`); } catch(e) {}
+try { db.exec(`ALTER TABLE players ADD COLUMN mana INTEGER DEFAULT 50`); } catch(e) {}
+try { db.exec(`ALTER TABLE players ADD COLUMN max_mana INTEGER DEFAULT 50`); } catch(e) {}
+try { db.exec(`ALTER TABLE farm_plots ADD COLUMN yield_bonus INTEGER DEFAULT 0`); } catch(e) {}
 
 // 初始化头像框数据
 const initFrames = db.prepare('SELECT COUNT(*) as cnt FROM avatar_frames').get();
@@ -192,6 +255,55 @@ const initTime = db.prepare('SELECT COUNT(*) as cnt FROM game_time').get();
 if (initTime.cnt === 0) {
   const { day, season, hour, minute } = config.time.initial;
   db.prepare(`INSERT INTO game_time (id, day, season, hour, minute) VALUES (1, ?, ?, ?, ?)`).run(day, season, hour, minute);
+}
+
+// ==================== 技能系统种子数据 ====================
+
+// 技能定义
+const initSkills = db.prepare('SELECT COUNT(*) as cnt FROM skills').get();
+if (initSkills.cnt === 0) {
+  const insertSkill = db.prepare(`INSERT INTO skills (id, name, type, max_level, sort_order) VALUES (?, ?, ?, ?, ?)`);
+  insertSkill.run('spirit_rain', '灵雨术', 'active', 10, 1);
+}
+
+// 灵雨术等级配置
+const initSkillLevels = db.prepare('SELECT COUNT(*) as cnt FROM skill_levels').get();
+if (initSkillLevels.cnt === 0) {
+  const insertSL = db.prepare(`INSERT INTO skill_levels (skill_id, level, mana_cost, yield_bonus, exp_required) VALUES (?, ?, ?, ?, ?)`);
+  const levels = [
+    ['spirit_rain', 1, 5, 10, 0],
+    ['spirit_rain', 2, 8, 50, 50],
+    ['spirit_rain', 3, 12, 100, 100],
+    ['spirit_rain', 4, 18, 150, 200],
+    ['spirit_rain', 5, 25, 200, 400],
+    ['spirit_rain', 6, 35, 300, 600],
+    ['spirit_rain', 7, 50, 400, 900],
+    ['spirit_rain', 8, 70, 500, 1300],
+    ['spirit_rain', 9, 100, 1000, 1800],
+    ['spirit_rain', 10, 150, 2000, 2500],
+  ];
+  const insertManySL = db.transaction((items) => { for (const l of items) insertSL.run(...l); });
+  insertManySL(levels);
+}
+
+// 功法定义
+const initTechs = db.prepare('SELECT COUNT(*) as cnt FROM techniques').get();
+if (initTechs.cnt === 0) {
+  const insertTech = db.prepare(`INSERT INTO techniques (id, name, max_level, mana_bonus_percent, sort_order) VALUES (?, ?, ?, ?, ?)`);
+  insertTech.run('qingxin', '清心决', 3, 10, 1);
+}
+
+// 功法等级配置
+const initTechLevels = db.prepare('SELECT COUNT(*) as cnt FROM technique_levels').get();
+if (initTechLevels.cnt === 0) {
+  const insertTL = db.prepare(`INSERT INTO technique_levels (technique_id, level, mana_bonus_percent, exp_required) VALUES (?, ?, ?, ?)`);
+  const tLevels = [
+    ['qingxin', 1, 10, 0],
+    ['qingxin', 2, 20, 100],
+    ['qingxin', 3, 30, 500],
+  ];
+  const insertManyTL = db.transaction((items) => { for (const l of items) insertTL.run(...l); });
+  insertManyTL(tLevels);
 }
 
 module.exports = db;
