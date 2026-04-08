@@ -934,10 +934,10 @@ body.farm-bg .crop-info-panel {
   height: 36px;
 }
 
-/* 生长阶段：放大 */
+/* 生长阶段：放大，上移1/8农田高度 */
 .iso-plot-emoji.stage-growing {
   margin-left: 15%;
-  margin-bottom: 40%;
+  margin-bottom: 52.5%;
 }
 
 .iso-plot-emoji.stage-growing .iso-plot-img {
