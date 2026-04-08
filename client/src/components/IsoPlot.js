@@ -56,6 +56,7 @@ export default function IsoPlot({ plot, emoji, isAnimating, emitParticle, zIndex
   }, [is_ready, emitParticle]);
 
   // 渲染作物图标：优先用阶段图片，失败则回退 emoji
+  // 图片分上下两层：上层摇晃，下层不动
   const renderCropIcon = () => {
     if (!crop_id) return null;
 
@@ -70,22 +71,45 @@ export default function IsoPlot({ plot, emoji, isAnimating, emitParticle, zIndex
     else if (is_ready) stageClass = 'stage-ready';
     else if (growth_stage > 0) stageClass = 'stage-growing';
 
+    if (noSway) {
+      // 种子阶段：单层图片，无动画
+      return (
+        <span className={`iso-plot-emoji ${stageClass}`} style={{ animation: 'none' }}>
+          <img
+            src={imgSrc}
+            alt={crop_id}
+            className="iso-plot-img"
+            onError={(e) => { e.currentTarget.style.display = 'none'; setImgError(true); }}
+            onLoad={(e) => { e.currentTarget.style.display = ''; setImgError(false); }}
+          />
+          {imgError && <span className="iso-plot-emoji-fallback">{emoji}</span>}
+        </span>
+      );
+    }
+
+    // 非种子阶段：分上下两层
     return (
-      <span className={`iso-plot-emoji ${stageClass}`} style={noSway ? { animation: 'none' } : {}}>
-        <img
-          src={imgSrc}
-          alt={crop_id}
-          className="iso-plot-img"
-          onError={(e) => {
-            e.currentTarget.style.display = 'none';
-            setImgError(true);
-          }}
-          onLoad={(e) => {
-            e.currentTarget.style.display = '';
-            setImgError(false);
-          }}
-        />
-        {/* 图片加载失败时回退 emoji */}
+      <span className={`iso-plot-emoji ${stageClass}`}>
+        {/* 下半部分（不动） */}
+        <div className="crop-layer crop-layer-bottom">
+          <img
+            src={imgSrc}
+            alt={crop_id}
+            className="iso-plot-img"
+            onError={(e) => { e.currentTarget.style.display = 'none'; setImgError(true); }}
+            onLoad={(e) => { e.currentTarget.style.display = ''; setImgError(false); }}
+          />
+        </div>
+        {/* 上半部分（摇晃） */}
+        <div className="crop-layer crop-layer-top">
+          <img
+            src={imgSrc}
+            alt={crop_id}
+            className="iso-plot-img"
+            onError={(e) => { e.currentTarget.style.display = 'none'; setImgError(true); }}
+            onLoad={(e) => { e.currentTarget.style.display = ''; setImgError(false); }}
+          />
+        </div>
         {imgError && <span className="iso-plot-emoji-fallback">{emoji}</span>}
       </span>
     );
