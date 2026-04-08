@@ -1,18 +1,23 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { t } from '../services/i18n';
 import assets from '../config/assets';
 import * as api from '../services/api';
 
-export default function CropInfoPanel({ selectedCrop, selectedPlot, lang, onClose, playerId, reload }) {
+export default function CropInfoPanel({ selectedCrop, selectedPlot, lang, onClose, playerId, reload, onUpdatePlot }) {
   if (!selectedCrop || !selectedPlot?.crop_id) return null;
 
-  const currentStage = selectedPlot.growth_stage;
+  const [localStage, setLocalStage] = useState(selectedPlot.growth_stage);
   const maxStage = selectedCrop.stages - 1;
 
   const handleSetStage = async (targetStage) => {
     try {
       await api.setPlotStage(playerId, selectedPlot.row_idx, selectedPlot.col_idx, targetStage);
+      setLocalStage(targetStage);
       reload();
+      // 通知父组件更新 selectedPlot
+      if (onUpdatePlot) {
+        onUpdatePlot({ ...selectedPlot, growth_stage: targetStage, is_ready: targetStage >= maxStage });
+      }
     } catch (e) {
       console.error('setStage error:', e);
     }
@@ -38,7 +43,7 @@ export default function CropInfoPanel({ selectedCrop, selectedPlot, lang, onClos
           </div>
           <div className="crop-stat">
             <span className="crop-stat-label">{assets.stat.growStage} {t('growStage', lang)}</span>
-            <span className="crop-stat-value">{currentStage + 1}/{selectedCrop.stages}</span>
+            <span className="crop-stat-value">{localStage + 1}/{selectedCrop.stages}</span>
           </div>
           <div className="crop-stat">
             <span className="crop-stat-label">{assets.stat.sellPrice} {t('sellPrice', lang)}</span>
@@ -65,10 +70,10 @@ export default function CropInfoPanel({ selectedCrop, selectedPlot, lang, onClos
           <span className="crop-test-label">🧪 {t('testStage', lang)}</span>
           <button
             className="btn btn-small btn-primary"
-            disabled={currentStage >= maxStage}
-            onClick={() => handleSetStage(currentStage + 1)}
+            disabled={localStage >= maxStage}
+            onClick={() => handleSetStage(localStage + 1)}
           >
-            {currentStage >= maxStage ? t('maxStage', lang) : `${t('nextStage', lang)} (${currentStage + 2}/${selectedCrop.stages})`}
+            {localStage >= maxStage ? t('maxStage', lang) : `${t('nextStage', lang)} (${localStage + 2}/${selectedCrop.stages})`}
           </button>
         </div>
       </div>

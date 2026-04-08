@@ -72,7 +72,6 @@ export default function useFarmActions(playerId, cropsMap, emitParticle, notify,
         const bonusText = result.yieldBonus > 0 ? ` (+${result.yieldBonus}%)` : '';
         notify(`${assets.notify.water} ${t('spiritRainSuccess', lang)}${bonusText}`, 'success');
         emitParticle('water', event);
-        triggerAnimation(plot.id);
         reload();
       } catch (e) {
         notify(e.message, 'error');
@@ -147,6 +146,7 @@ export default function useFarmActions(playerId, cropsMap, emitParticle, notify,
 
   return {
     selectedPlot, selectedCrop,
+    setSelectedPlot,
     animatingPlots,
     seedPanelVisible, seedPanelPos,
     dragOverPlot,
