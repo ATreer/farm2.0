@@ -27,6 +27,7 @@ export default function ShopView({ playerId, player, notify, refresh, emitPartic
       notify(`${t('buy', lang)} ${buyQty}× ${item.name}!`, 'success');
       emitParticle('gold', event);
       loadData();
+      refresh();
     } catch (e) {
       notify(e.message, 'error');
     }

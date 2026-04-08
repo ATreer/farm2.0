@@ -912,7 +912,6 @@ body.farm-bg .crop-info-panel {
 .iso-plot-emoji {
   font-size: 24px;
   line-height: 1;
-  animation: plantSway 3s ease-in-out infinite;
   filter: drop-shadow(1px 3px 2px rgba(0, 0, 0, 0.5));
   position: relative;
   z-index: 1;
@@ -928,6 +927,7 @@ body.farm-bg .crop-info-panel {
 .iso-plot-emoji.stage-seed {
   margin-left: 25%;
   margin-bottom: 10%;
+  animation: none;
 }
 
 .iso-plot-emoji.stage-seed .iso-plot-img {
@@ -935,13 +935,35 @@ body.farm-bg .crop-info-panel {
   height: 36px;
 }
 
-/* 生长阶段：放大3倍(36→108px)，右移+上移 */
-.iso-plot-emoji.stage-growing {
-  margin-left: 15%;
-  margin-bottom: 40%;
+/* 幼苗阶段：右移1/3，上移1/3 */
+.iso-plot-emoji.stage-sprout {
+  margin-left: 33%;
+  margin-bottom: 33%;
 }
 
-.iso-plot-emoji.stage-growing .iso-plot-img {
+/* 大叶阶段：右移1/3，上移1/3 */
+.iso-plot-emoji.stage-growing {
+  margin-left: 33%;
+  margin-bottom: 33%;
+}
+
+/* 开花阶段：右移1/3，上移1/3 */
+.iso-plot-emoji.stage-bloom {
+  margin-left: 33%;
+  margin-bottom: 33%;
+}
+
+/* 成熟阶段：右移1/3，上移1/3 */
+.iso-plot-emoji.stage-ready {
+  margin-left: 33%;
+  margin-bottom: 33%;
+}
+
+/* 非种子阶段图片大小 */
+.iso-plot-emoji.stage-sprout .iso-plot-img,
+.iso-plot-emoji.stage-growing .iso-plot-img,
+.iso-plot-emoji.stage-bloom .iso-plot-img,
+.iso-plot-emoji.stage-ready .iso-plot-img {
   width: 108px;
   height: 108px;
 }
@@ -958,11 +980,19 @@ body.farm-bg .crop-info-panel {
   line-height: 1;
 }
 
-/* 游戏风格摇摆动画（以底部为轴心左右摆动） */
+/* 摇晃动画：以上部1/3处为轴心，底部几乎不动 */
+.iso-plot-emoji.stage-sprout,
+.iso-plot-emoji.stage-growing,
+.iso-plot-emoji.stage-bloom,
+.iso-plot-emoji.stage-ready {
+  animation: plantSway 3s ease-in-out infinite;
+  transform-origin: 50% 30%;
+}
+
 @keyframes plantSway {
   0%, 100% { transform: skew(44deg, 0) rotate(0deg); }
-  25% { transform: skew(44deg, 0) rotate(3deg); }
-  75% { transform: skew(44deg, 0) rotate(-3deg); }
+  25% { transform: skew(44deg, 0) rotate(2deg); }
+  75% { transform: skew(44deg, 0) rotate(-2deg); }
 }
 
 .iso-plot-empty {
