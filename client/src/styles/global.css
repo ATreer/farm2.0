@@ -924,15 +924,15 @@ body.farm-bg .crop-info-panel {
   margin-bottom: 15%;
 }
 
-/* 种子阶段：放大1倍(36→72px)，稍微右移 */
+/* 种子阶段：缩小，右移1/4农田宽度 */
 .iso-plot-emoji.stage-seed {
-  margin-left: 10%;
-  margin-bottom: 20%;
+  margin-left: 25%;
+  margin-bottom: 10%;
 }
 
 .iso-plot-emoji.stage-seed .iso-plot-img {
-  width: 72px;
-  height: 72px;
+  width: 36px;
+  height: 36px;
 }
 
 /* 生长阶段：放大3倍(36→108px)，右移+上移 */
