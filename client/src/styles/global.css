@@ -941,15 +941,26 @@ body.farm-bg .crop-info-panel {
   height: 36px;
 }
 
-/* 生长阶段：上移，幼苗大小 */
+/* 幼苗阶段：缩小一倍，下移1/4农田高度 */
+.iso-plot-emoji.stage-sprout {
+  margin-left: 15%;
+  margin-bottom: 52.5%;
+}
+
+.iso-plot-emoji.stage-sprout .iso-plot-img {
+  width: 54px;
+  height: 54px;
+}
+
+/* 大叶/开花/成熟阶段：正常大小 */
 .iso-plot-emoji.stage-growing {
   margin-left: 15%;
   margin-bottom: 77.5%;
 }
 
 .iso-plot-emoji.stage-growing .iso-plot-img {
-  width: 54px;
-  height: 54px;
+  width: 108px;
+  height: 108px;
 }
 
 .iso-plot-img {

@@ -192,9 +192,10 @@ export default function IsoPlot({ plot, emoji, isAnimating, emitParticle, phaser
     }
 
     const imgSrc = getStageImagePath(crop_id, growth_stage);
-    // 阶段class
+    // 阶段class：stage-seed / stage-sprout / stage-growing
     let stageClass = '';
     if (growth_stage === 0) stageClass = 'stage-seed';
+    else if (growth_stage === 1) stageClass = 'stage-sprout';
     else stageClass = 'stage-growing';
 
     return (
